@@ -118,8 +118,14 @@ input  { font-family: inherit; }
 ul, ol { list-style: none; }
 
 /* ─── Base app container ────────────────────────────────────── */
-#app {
+#wrapper {
   min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+#app {
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -129,7 +135,6 @@ ul, ol { list-style: none; }
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
   animation: fadeIn 220ms ease both;
 }
 
@@ -969,28 +974,28 @@ ul, ol { list-style: none; }
 
 /* ─── Site credit watermark ─────────────────────────────────── */
 .site-credit {
-  position: fixed;
-  bottom: 1.25rem;
-  left: 1.1rem;
-  z-index: 200;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
   font-size: 0.65rem;
   font-weight: 500;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.6;
   letter-spacing: 0.03em;
-  pointer-events: none;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
   user-select: none;
-  transition: color var(--t);
+  transition: color var(--t), border-color var(--t);
 }
 .site-credit strong { font-weight: 700; }
 .credit-logo {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1rem;
+  height: 1rem;
   object-fit: contain;
   border-radius: 2px;
+  opacity: 0.7;
 }
 
 /* ─── Dark mode gradient overrides ─────────────────────────── */

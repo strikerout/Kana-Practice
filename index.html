@@ -24,20 +24,22 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="app">
-    <!-- All screens are rendered here by render.js -->
+  <div id="wrapper">
+    <div id="app">
+      <!-- All screens are rendered here by render.js -->
+    </div>
+
+    <!-- Footer watermark — always at the very bottom, never overlapping -->
+    <footer class="site-credit" aria-hidden="true">
+      <img src="img/strikeroutlogo.png" class="credit-logo" alt="StrikerOut">
+      <span>Created by <strong>StrikerOut</strong></span>
+    </footer>
   </div>
 
   <!-- Persistent controls (bottom-right, always visible) -->
   <div class="corner-controls">
     <button id="sound-toggle" class="corner-btn" title="Activar/desactivar sonido" aria-label="Sonido"></button>
     <button id="theme-toggle" class="corner-btn" title="Cambiar tema" aria-label="Cambiar tema"></button>
-  </div>
-
-  <!-- Watermark -->
-  <div class="site-credit" aria-hidden="true">
-    <img src="img/strikeroutlogo.png" class="credit-logo" alt="StrikerOut">
-    <span>Created by <strong>StrikerOut</strong></span>
   </div>
 
   <!-- Load order: data → state → sound → game → render → init -->
