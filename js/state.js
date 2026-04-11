@@ -21,6 +21,7 @@ const State = (() => {
     fonts: 'base',                  // 'base' | 'random'
     rounds: 20,                     // questions per session: 10 | 20 | 30 | null (all)
     theme: 'light',                 // 'light' | 'dark'
+    sound: true,                    // sound effects on/off
   };
 
   // ─── Internal state ──────────────────────────────────────────
@@ -80,6 +81,10 @@ const State = (() => {
     },
     setTheme(t) {
       _config.theme = t;
+      _save();
+    },
+    setSound(v) {
+      _config.sound = v;
       _save();
     },
     toggleSet(key) {

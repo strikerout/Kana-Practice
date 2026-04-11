@@ -355,6 +355,7 @@ const Render = (() => {
         const romaji = btn.dataset.romaji;
         const result = Game.submitChoice(romaji);
         State.updateGame({ lastWrong: result === 'wrong' ? romaji : null });
+        result === 'correct' ? Sound.correct() : Sound.wrong();
         screen();
         setTimeout(() => {
           const done = Game.advance();
@@ -412,6 +413,7 @@ const Render = (() => {
       if (!typed.trim()) return;
       State.updateGame({ lastTyped: typed });
       const result = Game.submitType(typed);
+      result === 'correct' ? Sound.correct() : Sound.wrong();
       screen();
       setTimeout(() => {
         const done = Game.advance();
@@ -492,7 +494,11 @@ const Render = (() => {
         const side   = card.dataset.side;
         const result = Game.selectCard(index, side);
 
+        if (result.type === 'matched' || result.type === 'group-done') Sound.correct();
+        if (result.type === 'done') Sound.correct();
+
         if (result.type === 'wrong') {
+          Sound.wrong();
           // Flash both wrong cards before re-rendering
           const leftEl  = document.querySelector(`.match-col-cards .match-card[data-side="left"][data-index="${result.wrongLeft}"]`);
           const rightEl = document.querySelector(`.match-col-cards .match-card[data-side="right"][data-index="${result.wrongRight}"]`);
@@ -576,6 +582,7 @@ const Render = (() => {
       if (!typed.trim()) return;
       State.updateGame({ lastTyped: typed });
       const result = Game.submitType(typed);
+      result === 'correct' ? Sound.correct() : Sound.wrong();
       screen();
       setTimeout(() => {
         const done = Game.advance();

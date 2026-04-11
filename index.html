@@ -20,6 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Sawarabi+Mincho&family=Zen+Kurenaido&display=swap" rel="stylesheet">
 
+  <link rel="icon" type="image/png" href="img/strikeroutlogo.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -27,14 +28,21 @@
     <!-- All screens are rendered here by render.js -->
   </div>
 
-  <!-- Persistent dark-mode toggle (bottom-right, always visible) -->
-  <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema"></button>
+  <!-- Persistent controls (bottom-right, always visible) -->
+  <div class="corner-controls">
+    <button id="sound-toggle" class="corner-btn" title="Activar/desactivar sonido" aria-label="Sonido"></button>
+    <button id="theme-toggle" class="corner-btn" title="Cambiar tema" aria-label="Cambiar tema"></button>
+  </div>
 
   <!-- Watermark -->
-  <div class="site-credit" aria-hidden="true">Created by <strong>StrikerOut</strong></div>
+  <div class="site-credit" aria-hidden="true">
+    <img src="img/strikeroutlogo.png" class="credit-logo" alt="StrikerOut">
+    <span>Created by <strong>StrikerOut</strong></span>
+  </div>
 
-  <!-- Load order: data → state → game → render → init -->
+  <!-- Load order: data → state → sound → game → render → init -->
   <script src="js/data.js"></script>
+  <script src="js/sound.js"></script>
   <script src="js/state.js"></script>
   <script src="js/game.js"></script>
   <script src="js/render.js"></script>
@@ -43,19 +51,34 @@
       State.init();
       Render.screen();
 
-      // Wire theme toggle
-      const btn = document.getElementById('theme-toggle');
-      function syncToggle() {
+      // ── Theme toggle ──────────────────────────────────────────
+      const themeBtn = document.getElementById('theme-toggle');
+      function syncTheme() {
         const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-        btn.textContent = dark ? '☀️' : '🌙';
+        themeBtn.textContent = dark ? '☀️' : '🌙';
       }
-      syncToggle();
-      btn.addEventListener('click', () => {
+      syncTheme();
+      themeBtn.addEventListener('click', () => {
         const current  = document.documentElement.getAttribute('data-theme');
         const newTheme = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         State.setTheme(newTheme);
-        syncToggle();
+        syncTheme();
+      });
+
+      // ── Sound toggle ──────────────────────────────────────────
+      const soundBtn = document.getElementById('sound-toggle');
+      // Apply saved preference
+      Sound.setEnabled(State.config.sound !== false);
+      function syncSound() {
+        soundBtn.textContent = Sound.isEnabled() ? '🔊' : '🔇';
+      }
+      syncSound();
+      soundBtn.addEventListener('click', () => {
+        const next = !Sound.isEnabled();
+        Sound.setEnabled(next);
+        State.setSound(next);
+        syncSound();
       });
     });
   </script>

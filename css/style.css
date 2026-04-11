@@ -103,7 +103,7 @@
 
 /* ─── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+html, body { height: 100%; overflow-x: hidden; }
 
 body {
   font-family: var(--font-ui);
@@ -930,22 +930,33 @@ ul, ol { list-style: none; }
   .config-section { padding: 1.25rem 1.5rem; }
 }
 
-/* Ensure horizontal scroll on narrow screens for the table */
-.table-body { -webkit-overflow-scrolling: touch; }
+/* Table body: scroll horizontal solo dentro de este contenedor */
+.table-body {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  /* Evita que el scroll se propague al body */
+  overscroll-behavior-x: contain;
+}
 
-/* ─── Theme toggle button (fixed, always visible) ───────────── */
-.theme-toggle {
+/* ─── Corner controls (sound + theme toggles) ───────────────── */
+.corner-controls {
   position: fixed;
   bottom: 1.25rem;
   right: 1.25rem;
   z-index: 200;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.corner-btn {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
   background: var(--surface);
   border: 1.5px solid var(--border);
   box-shadow: var(--shadow-md);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -953,15 +964,18 @@ ul, ol { list-style: none; }
   transition: background var(--t), border-color var(--t), transform var(--t), box-shadow var(--t);
   -webkit-tap-highlight-color: transparent;
 }
-.theme-toggle:hover  { transform: scale(1.1); box-shadow: var(--shadow-lg); }
-.theme-toggle:active { transform: scale(0.95); }
+.corner-btn:hover  { transform: scale(1.1); box-shadow: var(--shadow-lg); }
+.corner-btn:active { transform: scale(0.95); }
 
 /* ─── Site credit watermark ─────────────────────────────────── */
 .site-credit {
   position: fixed;
-  bottom: 1.35rem;
+  bottom: 1.25rem;
   left: 1.1rem;
   z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.65rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -972,6 +986,12 @@ ul, ol { list-style: none; }
   transition: color var(--t);
 }
 .site-credit strong { font-weight: 700; }
+.credit-logo {
+  width: 1.1rem;
+  height: 1.1rem;
+  object-fit: contain;
+  border-radius: 2px;
+}
 
 /* ─── Dark mode gradient overrides ─────────────────────────── */
 [data-theme="dark"] .screen-home {
