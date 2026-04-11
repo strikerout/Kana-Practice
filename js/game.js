@@ -57,6 +57,38 @@ const Game = (() => {
     return (r && arr.length > r) ? arr.slice(0, r) : arr;
   }
 
+  /**
+   * Build a word queue guaranteeing representation of each enabled
+   * extra feature (dakuten, youon, longVowel).
+   * ~25% of the session slots are reserved per enabled extra feature,
+   * then filled randomly from the full pool.
+   */
+  function _buildGuaranteedWordQueue(alphabet, sets, rounds) {
+    const all = getFilteredWords(alphabet, sets);
+    if (all.length === 0) return [];
+    const total   = rounds ? Math.min(rounds, all.length) : all.length;
+    const QUOTA   = Math.max(2, Math.floor(total * 0.25));
+    const selected = new Set();
+
+    // Reserve guaranteed slots for each enabled extra feature
+    [
+      { key: 'dakuten',   on: sets.dakuten },
+      { key: 'youon',     on: sets.youon },
+      { key: 'longVowel', on: sets.longVowel },
+    ].forEach(({ key, on }) => {
+      if (!on) return;
+      const pool = all.filter(w => detectWordFeatures(w.word, alphabet)[key]);
+      shuffle(pool).slice(0, QUOTA).forEach(w => selected.add(w));
+    });
+
+    // Fill remaining slots randomly
+    for (const w of shuffle(all)) {
+      if (selected.size >= total) break;
+      selected.add(w);
+    }
+    return shuffle([...selected]).slice(0, total);
+  }
+
   /** Build the character array for the table-fill mode from a level. */
   function _tableFillChars(alphabet, level) {
     const H = alphabet === 'hiragana';
@@ -95,12 +127,11 @@ const Game = (() => {
 
       // ── Words ────────────────────────────────────────────────
       if (mode === 'words') {
-        const allWords = getFilteredWords(cfg.alphabet, cfg.sets);
-        if (allWords.length === 0) {
+        const queue = _buildGuaranteedWordQueue(cfg.alphabet, cfg.sets, cfg.rounds);
+        if (queue.length === 0) {
           State.setGame({ mode, emptyPool: true });
           return;
         }
-        const queue = _applyRounds(shuffle(allWords));
         State.setGame({
           mode,
           wordDirection: cfg.wordDirection,
@@ -134,11 +165,11 @@ const Game = (() => {
 
       // ── Random ───────────────────────────────────────────────
       if (mode === 'random') {
-        const pool    = getData(cfg.alphabet, cfg.sets);
-        const words   = getFilteredWords(cfg.alphabet, cfg.sets);
-        const chars   = pool.map(c => ({ ...c, itemType: 'char' }));
-        const wordItems = words.map(w => ({ ...w, itemType: 'word' }));
-        const queue   = _applyRounds(shuffle([...chars, ...wordItems]));
+        const pool      = getData(cfg.alphabet, cfg.sets);
+        const wordPool  = _buildGuaranteedWordQueue(cfg.alphabet, cfg.sets, null);
+        const chars     = shuffle(pool).map(c => ({ ...c, itemType: 'char' }));
+        const wordItems = wordPool.map(w => ({ ...w, itemType: 'word' }));
+        const queue     = _applyRounds(shuffle([...chars, ...wordItems]));
         const subMode = _pickSubMode(queue[0]?.itemType);
         const choices = subMode === 'multiple'
           ? Game._buildChoices(queue[0], pool) : null;

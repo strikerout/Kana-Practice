@@ -838,28 +838,33 @@ const Render = (() => {
       return `<div class="kana-col-label">${row.label}</div>${rowCells}`;
     }).join('');
 
-    const submitBtn = !g.submitted
-      ? `<button class="btn btn-primary" id="tf-verify" style="margin-top:0.5rem">
-           Verificar (${answered}/${total})
-         </button>`
-      : `<div class="tf-result-bar">
-           <span class="score-correct">✓ ${g.results.correct}</span>
-           <span class="score-wrong">✗ ${g.results.wrong}</span>
-           <span style="color:var(--primary);font-weight:700">${Math.round(g.results.correct/g.results.total*100)}%</span>
-         </div>
-         <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
-           <button class="btn btn-secondary" id="tf-retry">↺ Repetir</button>
-           <button class="btn btn-primary" id="btn-home-tf">⌂ Inicio</button>
+    const footerHTML = !g.submitted
+      ? `<div class="tf-footer">
+           <button class="btn btn-primary tf-verify-btn" id="tf-verify">
+             ✓ Verificar (${answered}/${total})
+           </button>
+         </div>`
+      : `<div class="tf-footer">
+           <div class="tf-result-bar">
+             <span class="score-correct">✓ ${g.results.correct}</span>
+             <span class="score-wrong">✗ ${g.results.wrong}</span>
+             <span style="color:var(--primary);font-weight:700">${Math.round(g.results.correct/g.results.total*100)}%</span>
+           </div>
+           <div style="display:flex;gap:0.5rem">
+             <button class="btn btn-secondary" id="tf-retry" style="flex:1">↺ Repetir</button>
+             <button class="btn btn-primary" id="btn-home-tf" style="flex:1">⌂ Inicio</button>
+           </div>
          </div>`;
 
+    // Placeholder doesn't reveal the answer
     const activeHint = !g.submitted ? `
       <div class="tf-input-zone">
         <div class="tf-active-char">${activeChar.char}</div>
         <input id="tf-input" class="type-input" type="text"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-          placeholder="${activeChar.romaji}..."
+          placeholder="romaji..."
           value="${g.answers[activeChar.char] || ''}">
-        <button class="corner-btn" id="tf-next" style="width:2.75rem;height:2.75rem">→</button>
+        <button class="corner-btn" id="tf-next" style="width:2.75rem;height:2.75rem;flex-shrink:0">→</button>
       </div>` : '';
 
     return `
@@ -881,7 +886,7 @@ const Render = (() => {
           <div class="tf-table-scroll">
             <div class="kana-grid cols-6">${cellsHTML}</div>
           </div>
-          ${submitBtn}
+          ${footerHTML}
         </div>
       </div>`;
   }
@@ -897,18 +902,34 @@ const Render = (() => {
   function _gameTableFillEvents() {
     const g = State.game;
 
+    // Helper: check if all cells answered and auto-verify
+    function checkAutoVerify() {
+      const g2 = State.game;
+      const allDone = g2.chars.every(c => g2.answers[c.char]?.trim());
+      if (allDone) {
+        setTimeout(() => {
+          if (!State.game.submitted) {
+            const res = Game.tfSubmit();
+            res.correct === res.total ? Sound.correct() : Sound.wrong();
+            screen();
+          }
+        }, 400);
+        return true;
+      }
+      return false;
+    }
+
     // Cell tap → make active
     document.querySelectorAll('.tf-cell[data-char-idx]').forEach(cell => {
       cell.addEventListener('click', () => {
         const idx = parseInt(cell.dataset.charIdx, 10);
         Game.tfSetActive(idx);
-        // Sync input value
-        const inp = document.getElementById('tf-input');
-        if (inp) {
-          inp.value = g.answers[g.chars[idx].char] || '';
-          inp.focus();
-        }
         screen();
+        // Re-focus after re-render
+        setTimeout(() => {
+          const inp = document.getElementById('tf-input');
+          if (inp) { inp.focus(); inp.select(); }
+        }, 30);
       });
     });
 
@@ -916,24 +937,39 @@ const Render = (() => {
     const inp = document.getElementById('tf-input');
     if (inp) {
       inp.addEventListener('input', () => Game.tfSetAnswer(inp.value));
+
       inp.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
           Game.tfSetAnswer(inp.value);
           Game.tfAdvance();
-          screen();
+          if (!checkAutoVerify()) {
+            screen();
+            setTimeout(() => {
+              const ni = document.getElementById('tf-input');
+              if (ni) { ni.focus(); ni.select(); }
+            }, 30);
+          }
         }
       });
-      inp.focus();
+
+      // Auto-focus on load (opens keyboard on mobile)
+      setTimeout(() => { inp.focus(); }, 80);
     }
 
     // Next button
     document.getElementById('tf-next')?.addEventListener('click', () => {
       if (inp) Game.tfSetAnswer(inp.value);
       Game.tfAdvance();
-      screen();
+      if (!checkAutoVerify()) {
+        screen();
+        setTimeout(() => {
+          const ni = document.getElementById('tf-input');
+          if (ni) { ni.focus(); ni.select(); }
+        }, 30);
+      }
     });
 
-    // Verify all
+    // Manual verify
     document.getElementById('tf-verify')?.addEventListener('click', () => {
       if (inp) Game.tfSetAnswer(inp.value);
       const res = Game.tfSubmit();

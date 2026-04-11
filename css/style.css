@@ -1066,7 +1066,7 @@ ul, ol { list-style: none; }
    ═══════════════════════════════════════════════════════════════ */
 .tf-layout {
   flex: 1; display: flex; flex-direction: column;
-  gap: 0.5rem; padding: 0.5rem var(--gap) 1rem; overflow: hidden;
+  gap: 0.4rem; padding: 0.5rem var(--gap) 0; min-height: 0;
 }
 .tf-input-zone {
   display: flex; align-items: center; gap: 0.5rem;
@@ -1079,9 +1079,17 @@ ul, ol { list-style: none; }
 }
 .tf-input-zone .type-input { flex: 1; text-align: left; padding: 0.5rem 0.75rem; }
 .tf-table-scroll {
-  flex: 1; overflow: auto;
+  flex: 1; overflow: auto; min-height: 0;
   -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
+/* Footer always visible at the bottom */
+.tf-footer {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 0.4rem 0 env(safe-area-inset-bottom, 0.75rem);
+  background: var(--bg);
+}
+.tf-verify-btn { width: 100%; padding: 0.85rem; font-size: 1rem; }
 .tf-cell { cursor: pointer; }
 .tf-cell:hover:not(.tf-active) { transform: scale(1.06); }
 .tf-active { outline: 3px solid var(--primary); outline-offset: 1px; z-index: 1; }
