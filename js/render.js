@@ -838,26 +838,21 @@ const Render = (() => {
       return `<div class="kana-col-label">${row.label}</div>${rowCells}`;
     }).join('');
 
-    const footerHTML = !g.submitted
-      ? `<div class="tf-footer">
-           <button class="btn btn-primary tf-verify-btn" id="tf-verify">
-             ✓ Verificar (${answered}/${total})
-           </button>
-         </div>`
-      : `<div class="tf-footer">
-           <div class="tf-result-bar">
-             <span class="score-correct">✓ ${g.results.correct}</span>
-             <span class="score-wrong">✗ ${g.results.wrong}</span>
-             <span style="color:var(--primary);font-weight:700">${Math.round(g.results.correct/g.results.total*100)}%</span>
-           </div>
-           <div style="display:flex;gap:0.5rem">
-             <button class="btn btn-secondary" id="tf-retry" style="flex:1">↺ Repetir</button>
-             <button class="btn btn-primary" id="btn-home-tf" style="flex:1">⌂ Inicio</button>
-           </div>
+    const levelLabel = g.level === 'gojuon' ? 'Nivel 1' : g.level === 'dakuten' ? 'Nivel 2' : 'Nivel 3';
+
+    const footerContent = !g.submitted
+      ? `<button class="btn btn-primary tf-verify-btn" id="tf-verify">✓ Verificar (${answered}/${total})</button>`
+      : `<div class="tf-result-bar">
+           <span class="score-correct">✓ ${g.results.correct}</span>
+           <span class="score-wrong">✗ ${g.results.wrong}</span>
+           <span style="color:var(--primary);font-weight:700">${Math.round(g.results.correct/g.results.total*100)}%</span>
+         </div>
+         <div style="display:flex;gap:0.5rem">
+           <button class="btn btn-secondary" id="tf-retry" style="flex:1">↺ Repetir</button>
+           <button class="btn btn-primary" id="btn-home-tf" style="flex:1">⌂ Inicio</button>
          </div>`;
 
-    // Placeholder doesn't reveal the answer
-    const activeHint = !g.submitted ? `
+    const inputZoneHTML = !g.submitted ? `
       <div class="tf-input-zone">
         <div class="tf-active-char">${activeChar.char}</div>
         <input id="tf-input" class="type-input" type="text"
@@ -867,27 +862,38 @@ const Render = (() => {
         <button class="corner-btn" id="tf-next" style="width:2.75rem;height:2.75rem;flex-shrink:0">→</button>
       </div>` : '';
 
+    /*
+     * Layout strategy: .screen.tf-page is the SINGLE scroll container
+     * (overflow-y: auto). Sticky elements inside it stick relative to
+     * that container, so no nested-scroll conflicts exist.
+     *
+     * ┌─ .tf-sticky-top  (sticky top:0) ──────────────┐
+     * │  game-header + tf-input-zone                   │
+     * └────────────────────────────────────────────────┘
+     * │  .tf-table-body  (natural flow, scrolls)       │
+     * ┌─ .tf-footer      (sticky bottom:0) ────────────┐
+     * │  verify button or results                       │
+     * └────────────────────────────────────────────────┘
+     */
     return `
-      <div class="screen screen-game">
-        <header class="game-header">
-          <button class="btn-back" id="btn-exit">✕ Salir</button>
-          <div class="progress-wrap">
-            <span class="progress-text">${answered} / ${total} completadas</span>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${Math.round(answered/total*100)}%"></div>
+      <div class="screen screen-game tf-page">
+        <div class="tf-sticky-top">
+          <header class="game-header">
+            <button class="btn-back" id="btn-exit">✕ Salir</button>
+            <div class="progress-wrap">
+              <span class="progress-text">${answered} / ${total} completadas</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${Math.round(answered/total*100)}%"></div>
+              </div>
             </div>
-          </div>
-          <div class="game-score" style="font-size:0.75rem">
-            ${g.level === 'gojuon' ? 'Nivel 1' : g.level === 'dakuten' ? 'Nivel 2' : 'Nivel 3'}
-          </div>
-        </header>
-        <div class="tf-layout">
-          ${activeHint}
-          <div class="tf-table-scroll">
-            <div class="kana-grid cols-6">${cellsHTML}</div>
-          </div>
-          ${footerHTML}
+            <div class="game-score" style="font-size:0.75rem">${levelLabel}</div>
+          </header>
+          ${inputZoneHTML}
         </div>
+        <div class="tf-table-body">
+          <div class="kana-grid cols-6">${cellsHTML}</div>
+        </div>
+        <div class="tf-footer">${footerContent}</div>
       </div>`;
   }
 
@@ -903,34 +909,23 @@ const Render = (() => {
     const g = State.game;
 
     /**
-     * Scroll tf-table-scroll to vertically center the active cell.
-     * Targets the inner scroll container specifically — the input zone
-     * and footer stay in place because they're outside this container.
+     * Scroll the active cell into view (centered) within .tf-page,
+     * which is now the single scroll container. The sticky top and
+     * footer stay in place automatically.
      */
     function scrollToActive() {
-      const container = document.querySelector('.tf-table-scroll');
-      const cell      = document.querySelector('.tf-active');
-      if (!container || !cell) return;
-      const cRect = container.getBoundingClientRect();
-      const aRect = cell.getBoundingClientRect();
-      const target = container.scrollTop
-        + (aRect.top - cRect.top)
-        - (cRect.height / 2)
-        + (aRect.height / 2);
-      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+      const cell = document.querySelector('.tf-active');
+      if (cell) cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    /**
-     * Re-render, then scroll active cell to center and re-focus input.
-     * The input zone and footer don't scroll — they're outside tf-table-scroll.
-     */
+    /** Re-render → scroll active to center → re-focus input. */
     function advanceUI() {
       screen();
       setTimeout(() => {
         scrollToActive();
         const ni = document.getElementById('tf-input');
         if (ni) { ni.focus(); ni.select(); }
-      }, 50);
+      }, 60);
     }
 
     // Helper: check if all cells answered and auto-verify

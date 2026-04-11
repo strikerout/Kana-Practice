@@ -1064,30 +1064,48 @@ ul, ol { list-style: none; }
 /* ═══════════════════════════════════════════════════════════════
    COMPLETA LA TABLA
    ═══════════════════════════════════════════════════════════════ */
-.tf-layout {
-  flex: 1; display: flex; flex-direction: column;
-  gap: 0.4rem; padding: 0.5rem var(--gap) 0; min-height: 0;
+/*
+ * .tf-page is the single scroll container for Completa la tabla.
+ * Sticky children work relative to it, eliminating nested-scroll issues.
+ */
+.tf-page {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* flex:1 + display:flex are inherited from .screen — keep them */
+  flex-direction: column; /* ensure column layout */
 }
+
+/* Sticky top: header + input zone stick together */
+.tf-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+}
+
 .tf-input-zone {
   display: flex; align-items: center; gap: 0.5rem;
-  background: var(--surface); border-radius: var(--r-md);
-  padding: 0.5rem 0.75rem; box-shadow: var(--shadow-sm); flex-shrink: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
 }
 .tf-active-char {
   font-size: 1.8rem; font-family: 'Noto Sans JP', sans-serif;
   min-width: 2.2rem; text-align: center;
 }
 .tf-input-zone .type-input { flex: 1; text-align: left; padding: 0.5rem 0.75rem; }
-.tf-table-scroll {
-  flex: 1; overflow: auto; min-height: 0;
-  -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-}
-/* Footer always visible at the bottom */
+
+/* Table lives in natural document flow — no height constraint, scrolls with page */
+.tf-table-body { padding: 0.5rem var(--gap) 0.25rem; flex: 1; }
+
+/* Sticky footer: verify button / results always visible at bottom */
 .tf-footer {
-  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 19;
   display: flex; flex-direction: column; gap: 0.4rem;
-  padding: 0.4rem 0 env(safe-area-inset-bottom, 0.75rem);
+  padding: 0.5rem var(--gap) env(safe-area-inset-bottom, 0.75rem);
   background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 .tf-verify-btn { width: 100%; padding: 0.85rem; font-size: 1rem; }
 .tf-cell {
