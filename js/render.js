@@ -405,7 +405,11 @@ const Render = (() => {
   function _gameTypeEvents() {
     const input  = document.getElementById('type-input');
     const submit = document.getElementById('btn-submit');
-    if (input && !State.game.answered) input.focus();
+    if (input && !State.game.answered) {
+      input.focus();
+      // Espera a que el teclado virtual abra y hace scroll suave al input
+      setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    }
 
     function doSubmit() {
       if (State.game.answered) return;
@@ -574,7 +578,10 @@ const Render = (() => {
   function _gameWordsEvents() {
     const input  = document.getElementById('type-input');
     const submit = document.getElementById('btn-submit');
-    if (input && !State.game.answered) input.focus();
+    if (input && !State.game.answered) {
+      input.focus();
+      setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    }
 
     function doSubmit() {
       if (State.game.answered) return;
