@@ -785,9 +785,16 @@ ul, ol { list-style: none; }
   line-height: 1;
   transition: font-size 200ms ease;
 }
-/* Cuando el teclado virtual abre, el emoji se achica para que entre la kana card */
-.keyboard-open .word-emoji { font-size: 1.8rem; }
-.keyboard-open .game-content { gap: 0.6rem; padding-top: 0.4rem; }
+/* Cuando el teclado virtual abre: comprimir layout para que la kana card sea visible */
+.keyboard-open .word-emoji    { font-size: 1.6rem; }
+.keyboard-open .game-content  {
+  justify-content: flex-start; /* elimina el espacio central que empuja todo arriba */
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.keyboard-open .kana-display  { min-height: auto; padding: 0.6rem 1.5rem; }
+.keyboard-open .type-area     { gap: 0.4rem; }
 
 /* Feedback block shown after answering a word question */
 .word-feedback {
