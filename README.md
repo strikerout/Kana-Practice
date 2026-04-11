@@ -16,14 +16,18 @@
   - Multiple choice — pick the correct romaji from 4 options
   - Write — type the romaji from memory
   - Match — pair characters with their romaji in two columns
-  - Words — read full words and type their romaji
+  - Words — read full words and type their romaji (with emoji hint + Spanish meaning revealed after answering)
   - 🎲 Random — wild mix of all the above, including words
-- **193 vocabulary words** with emoji and Spanish meanings (Hiragana + Katakana)
+- **193 vocabulary words** with emoji and Spanish meanings
+  - 103 Hiragana words (animals, nature, seasons, colors, food, body parts, objects, people…)
+  - 90 Katakana words (loanwords: drinks, food, tech, transport, sports, music, clothing, animals…)
+  - Shuffled randomly every session
 - **Font rotation** — characters appear in up to 5 different Japanese typefaces so you learn to recognize them beyond a single style
 - **Configurable sessions** — choose how many questions per round (10 / 20 / 30 / all)
+- **Sound effects** — chime on correct, thud on wrong (Web Audio API, no audio files needed)
 - **Dark mode** — clean dark theme, toggle anytime
 - **Fully responsive** — works great on mobile and desktop
-- **No backend** — single HTML file + CSS + JS, runs entirely in the browser
+- **No backend** — open `index.html` directly in any browser, no server needed
 
 ---
 
@@ -43,28 +47,31 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/hiraganapractice.git
+git clone https://github.com/strikerout/Kana-Practice.git
 
 # Open in browser — no server needed
 open index.html
 ```
 
-Or just download the ZIP and open `index.html`. That's it.
+Or visit directly: **[strikerout.github.io/Kana-Practice](https://strikerout.github.io/Kana-Practice/)**
 
 ---
 
 ## 🗂 Project Structure
 
 ```
-hiraganapractice/
+Kana-Practice/
 ├── index.html          # Entry point — structure & script imports
 ├── css/
 │   └── style.css       # All styles: variables, layout, components, dark mode
-└── js/
-    ├── data.js         # All kana data, word lists, font pool, table layouts
-    ├── state.js        # App state + localStorage persistence
-    ├── game.js         # Game logic: queues, answer checking, scoring
-    └── render.js       # DOM rendering and event wiring for every screen
+├── js/
+│   ├── data.js         # All kana data, word lists, font pool, table layouts
+│   ├── state.js        # App state + localStorage persistence
+│   ├── game.js         # Game logic: queues, answer checking, scoring
+│   ├── render.js       # DOM rendering and event wiring for every screen
+│   └── sound.js        # Procedural sound effects via Web Audio API
+└── img/
+    └── strikeroutlogo.png
 ```
 
 Each file has a single, clear responsibility. No frameworks, no build step.
@@ -75,7 +82,8 @@ Each file has a single, clear responsibility. No frameworks, no build step.
 
 - **Vanilla HTML / CSS / JavaScript** — zero dependencies
 - **Google Fonts** — Noto Sans JP, Noto Serif JP, M PLUS Rounded 1c, Sawarabi Mincho, Zen Kurenaido
-- **localStorage** — persists your preferences (alphabet, character sets, game mode, font style, dark mode)
+- **localStorage** — persists your preferences (alphabet, character sets, game mode, session length, font style, dark mode, sound on/off)
+- **Web Audio API** — procedural sound effects, no audio files required
 
 ---
 
