@@ -902,6 +902,37 @@ const Render = (() => {
   function _gameTableFillEvents() {
     const g = State.game;
 
+    /**
+     * Scroll tf-table-scroll to vertically center the active cell.
+     * Targets the inner scroll container specifically — the input zone
+     * and footer stay in place because they're outside this container.
+     */
+    function scrollToActive() {
+      const container = document.querySelector('.tf-table-scroll');
+      const cell      = document.querySelector('.tf-active');
+      if (!container || !cell) return;
+      const cRect = container.getBoundingClientRect();
+      const aRect = cell.getBoundingClientRect();
+      const target = container.scrollTop
+        + (aRect.top - cRect.top)
+        - (cRect.height / 2)
+        + (aRect.height / 2);
+      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    }
+
+    /**
+     * Re-render, then scroll active cell to center and re-focus input.
+     * The input zone and footer don't scroll — they're outside tf-table-scroll.
+     */
+    function advanceUI() {
+      screen();
+      setTimeout(() => {
+        scrollToActive();
+        const ni = document.getElementById('tf-input');
+        if (ni) { ni.focus(); ni.select(); }
+      }, 50);
+    }
+
     // Helper: check if all cells answered and auto-verify
     function checkAutoVerify() {
       const g2 = State.game;
@@ -919,17 +950,12 @@ const Render = (() => {
       return false;
     }
 
-    // Cell tap → make active
+    // Cell tap → make active + scroll + focus
     document.querySelectorAll('.tf-cell[data-char-idx]').forEach(cell => {
       cell.addEventListener('click', () => {
         const idx = parseInt(cell.dataset.charIdx, 10);
         Game.tfSetActive(idx);
-        screen();
-        // Re-focus after re-render
-        setTimeout(() => {
-          const inp = document.getElementById('tf-input');
-          if (inp) { inp.focus(); inp.select(); }
-        }, 30);
+        advanceUI(); // re-render + scroll to cell + focus input
       });
     });
 
@@ -942,13 +968,7 @@ const Render = (() => {
         if (e.key === 'Enter') {
           Game.tfSetAnswer(inp.value);
           Game.tfAdvance();
-          if (!checkAutoVerify()) {
-            screen();
-            setTimeout(() => {
-              const ni = document.getElementById('tf-input');
-              if (ni) { ni.focus(); ni.select(); }
-            }, 30);
-          }
+          if (!checkAutoVerify()) advanceUI();
         }
       });
 
@@ -960,13 +980,7 @@ const Render = (() => {
     document.getElementById('tf-next')?.addEventListener('click', () => {
       if (inp) Game.tfSetAnswer(inp.value);
       Game.tfAdvance();
-      if (!checkAutoVerify()) {
-        screen();
-        setTimeout(() => {
-          const ni = document.getElementById('tf-input');
-          if (ni) { ni.focus(); ni.select(); }
-        }, 30);
-      }
+      if (!checkAutoVerify()) advanceUI();
     });
 
     // Manual verify

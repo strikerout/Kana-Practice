@@ -1090,7 +1090,11 @@ ul, ol { list-style: none; }
   background: var(--bg);
 }
 .tf-verify-btn { width: 100%; padding: 0.85rem; font-size: 1rem; }
-.tf-cell { cursor: pointer; }
+.tf-cell {
+  cursor: pointer;
+  /* Allow vertical scroll gestures on the cells without blocking tap events */
+  touch-action: manipulation;
+}
 .tf-cell:hover:not(.tf-active) { transform: scale(1.06); }
 .tf-active { outline: 3px solid var(--primary); outline-offset: 1px; z-index: 1; }
 .tf-correct { background: var(--correct-bg) !important; }
