@@ -68,6 +68,14 @@
         syncTheme();
       });
 
+      // ── Compact layout when virtual keyboard is open ─────────
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+          const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
+          document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
+        });
+      }
+
       // ── Sound toggle ──────────────────────────────────────────
       const soundBtn = document.getElementById('sound-toggle');
       // Apply saved preference

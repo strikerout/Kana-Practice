@@ -407,8 +407,11 @@ const Render = (() => {
     const submit = document.getElementById('btn-submit');
     if (input && !State.game.answered) {
       input.focus();
-      // Espera a que el teclado virtual abra y hace scroll suave al input
-      setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      // Scroll la kana card al tope para que sea visible sobre el teclado
+      setTimeout(() => {
+        const kana = document.querySelector('.kana-display');
+        if (kana) kana.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
     }
 
     function doSubmit() {
@@ -424,7 +427,13 @@ const Render = (() => {
         if (done) State.setScreen('result');
         screen();
         const ni = document.getElementById('type-input');
-        if (ni) ni.focus();
+        if (ni) {
+          ni.focus();
+          setTimeout(() => {
+            const kana = document.querySelector('.kana-display');
+            if (kana) kana.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 200);
+        }
       }, result === 'correct' ? Game.NEXT_DELAY_CORRECT : Game.NEXT_DELAY_WRONG);
     }
 
@@ -580,7 +589,10 @@ const Render = (() => {
     const submit = document.getElementById('btn-submit');
     if (input && !State.game.answered) {
       input.focus();
-      setTimeout(() => input.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      setTimeout(() => {
+        const kana = document.querySelector('.kana-display');
+        if (kana) kana.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
     }
 
     function doSubmit() {
@@ -596,7 +608,13 @@ const Render = (() => {
         if (done) State.setScreen('result');
         screen();
         const ni = document.getElementById('type-input');
-        if (ni) ni.focus();
+        if (ni) {
+          ni.focus();
+          setTimeout(() => {
+            const kana = document.querySelector('.kana-display');
+            if (kana) kana.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 200);
+        }
       }, result === 'correct' ? Game.NEXT_DELAY_CORRECT : Game.NEXT_DELAY_WRONG);
     }
 

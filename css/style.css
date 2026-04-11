@@ -783,7 +783,11 @@ ul, ol { list-style: none; }
   font-size: 3.5rem;
   text-align: center;
   line-height: 1;
+  transition: font-size 200ms ease;
 }
+/* Cuando el teclado virtual abre, el emoji se achica para que entre la kana card */
+.keyboard-open .word-emoji { font-size: 1.8rem; }
+.keyboard-open .game-content { gap: 0.6rem; padding-top: 0.4rem; }
 
 /* Feedback block shown after answering a word question */
 .word-feedback {
