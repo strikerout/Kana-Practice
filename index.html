@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>かな練習 — Kana Practice</title>
+
+  <!-- Apply theme before CSS loads to avoid flash of wrong theme -->
+  <script>
+    (function () {
+      try {
+        const cfg = JSON.parse(localStorage.getItem('kana_practice_v1') || '{}');
+        if (cfg.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (_) {}
+    })();
+  </script>
+
+  <!-- Japanese font pool for font-rotation feature -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+Rounded+1c:wght@400;700&family=Sawarabi+Mincho&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- All screens are rendered here by render.js -->
+  </div>
+
+  <!-- Persistent dark-mode toggle (bottom-right, always visible) -->
+  <button id="theme-toggle" class="theme-toggle" title="Cambiar tema" aria-label="Cambiar tema"></button>
+
+  <!-- Watermark -->
+  <div class="site-credit" aria-hidden="true">Created by <strong>StrikerOut</strong></div>
+
+  <!-- Load order: data → state → game → render → init -->
+  <script src="js/data.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      State.init();
+      Render.screen();
+
+      // Wire theme toggle
+      const btn = document.getElementById('theme-toggle');
+      function syncToggle() {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        btn.textContent = dark ? '☀️' : '🌙';
+      }
+      syncToggle();
+      btn.addEventListener('click', () => {
+        const current  = document.documentElement.getAttribute('data-theme');
+        const newTheme = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        State.setTheme(newTheme);
+        syncToggle();
+      });
+    });
+  </script>
+</body>
+</html>
