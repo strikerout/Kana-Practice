@@ -37,13 +37,13 @@ const Render = (() => {
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         </div>
         <div class="game-score">
-          <span class="score-correct">✓ ${g.correct}</span>
-          <span class="score-wrong">✗ ${g.wrong}</span>
+          <span class="score-correct">✓ ${g.correct || 0}</span>
+          <span class="score-wrong">✗ ${g.wrong || 0}</span>
         </div>
       </header>`;
   }
 
-  // ── Effective mode for routing (handles 'random' sub-mode) ──
+  /** Effective mode for routing — handles 'random' subMode. */
   function _effectiveMode() {
     const g = State.game;
     return g.subMode || g.mode;
@@ -54,8 +54,8 @@ const Render = (() => {
   // ══════════════════════════════════════════════════════════════
   function _homeHTML() {
     const { alphabet } = State.config;
-    const hiActive = alphabet === 'hiragana' ? 'active' : '';
-    const kaActive = alphabet === 'katakana' ? 'active' : '';
+    const hiA = alphabet === 'hiragana' ? 'active' : '';
+    const kaA = alphabet === 'katakana' ? 'active' : '';
     return `
       <div class="screen screen-home">
         <header class="home-header">
@@ -63,11 +63,11 @@ const Render = (() => {
           <p class="app-subtitle">Kana Practice</p>
         </header>
         <div class="alphabet-selector">
-          <button class="btn-alphabet ${hiActive}" data-alphabet="hiragana">
+          <button class="btn-alphabet ${hiA}" data-alphabet="hiragana">
             <span class="kana-char" style="font-size:2.5rem;font-family:'Noto Sans JP',sans-serif">あ</span>
             <span class="label">Hiragana</span>
           </button>
-          <button class="btn-alphabet ${kaActive}" data-alphabet="katakana">
+          <button class="btn-alphabet ${kaA}" data-alphabet="katakana">
             <span class="kana-char" style="font-size:2.5rem;font-family:'Noto Sans JP',sans-serif">ア</span>
             <span class="label">Katakana</span>
           </button>
@@ -81,10 +81,7 @@ const Render = (() => {
 
   function _homeEvents() {
     document.querySelectorAll('.btn-alphabet').forEach(btn => {
-      btn.addEventListener('click', () => {
-        State.setAlphabet(btn.dataset.alphabet);
-        screen();
-      });
+      btn.addEventListener('click', () => { State.setAlphabet(btn.dataset.alphabet); screen(); });
     });
     document.getElementById('btn-table').addEventListener('click', () => {
       State.setScreen('table'); screen();
@@ -95,20 +92,18 @@ const Render = (() => {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // TABLE
+  // TABLE  (+ guide tab)
   // ══════════════════════════════════════════════════════════════
   function _tableHTML() {
     const { alphabet } = State.config;
-    const tab          = State.tableTab;
-    const lookup       = getLookup(alphabet);
-    const label        = alphabet === 'hiragana' ? 'Hiragana' : 'Katakana';
-    const tabs         = ['gojuon', 'dakuten', 'youon'];
-    const tabLabels    = { gojuon: 'Gojūon', dakuten: 'Dakuten / H.', youon: 'Yōon' };
-
+    const tab    = State.tableTab;
+    const lookup = getLookup(alphabet);
+    const label  = alphabet === 'hiragana' ? 'Hiragana' : 'Katakana';
+    const tabs   = ['gojuon', 'dakuten', 'youon', 'guia'];
+    const tl     = { gojuon: 'Gojūon', dakuten: 'Dakuten', youon: 'Yōon', guia: '📖 Guía' };
     const tabsHTML = tabs.map(t =>
-      `<button class="tab-btn ${t === tab ? 'active' : ''}" data-tab="${t}">${tabLabels[t]}</button>`
+      `<button class="tab-btn ${t === tab ? 'active' : ''}" data-tab="${t}">${tl[t]}</button>`
     ).join('');
-
     return `
       <div class="screen screen-table">
         <header class="screen-header">
@@ -121,19 +116,18 @@ const Render = (() => {
   }
 
   function _tableContentHTML(tab, lookup) {
-    if (tab === 'gojuon') {
-      return _kanaGridHTML(TABLE_GOJUON_ROWS, ['a','i','u','e','o'], 'cols-6', lookup);
-    }
-    if (tab === 'dakuten') {
-      return `<div class="table-section">
-        <p class="table-section-title">Dakuten (voiced — ゛) + Handakuten (semi-voiced — ゜)</p>
+    if (tab === 'gojuon')  return _kanaGridHTML(TABLE_GOJUON_ROWS, ['a','i','u','e','o'], 'cols-6', lookup);
+    if (tab === 'dakuten') return `
+      <div class="table-section">
+        <p class="table-section-title">Dakuten (voiced ゛) + Handakuten (semi-voiced ゜)</p>
         ${_kanaGridHTML(TABLE_DAKUTEN_ROWS, ['a','i','u','e','o'], 'cols-6', lookup)}
       </div>`;
-    }
-    return `<div class="table-section">
-      <p class="table-section-title">Yōon — compuestos (ya / yu / yo)</p>
-      ${_kanaGridHTML(TABLE_YOUON_ROWS, ['ya','yu','yo'], 'cols-4', lookup)}
-    </div>`;
+    if (tab === 'youon')   return `
+      <div class="table-section">
+        <p class="table-section-title">Yōon — compuestos (ya / yu / yo)</p>
+        ${_kanaGridHTML(TABLE_YOUON_ROWS, ['ya','yu','yo'], 'cols-4', lookup)}
+      </div>`;
+    return _guideHTML();
   }
 
   function _kanaGridHTML(rows, colLabels, colClass, lookup) {
@@ -143,8 +137,7 @@ const Render = (() => {
       const cells = row.romajis.map(r => {
         if (!r || !lookup[r]) return `<div class="kana-cell empty"></div>`;
         return `<div class="kana-cell ${row.rowClass}" title="${r}">
-          <span class="char">${lookup[r]}</span>
-          <span class="rom">${r}</span>
+          <span class="char">${lookup[r]}</span><span class="rom">${r}</span>
         </div>`;
       }).join('');
       return `<div class="kana-col-label">${row.label}</div>${cells}`;
@@ -152,14 +145,89 @@ const Render = (() => {
     return `<div class="kana-grid ${colClass}">${headerCells}${dataRows}</div>`;
   }
 
+  // ─── Guide tab ───────────────────────────────────────────────
+  function _guideHTML() {
+    return `
+      <div class="guide-body">
+
+        <div class="guide-section">
+          <h3>🔤 Gojūon (五十音) — Puros</h3>
+          <p>Los 46 caracteres base. Cada uno representa una sílaba: vocal sola o consonante + vocal. Sin ninguna marca adicional.</p>
+          <div class="guide-chars">
+            ${[['あ','a'],['か','ka'],['さ','sa'],['た','ta'],['な','na'],
+               ['は','ha'],['ま','ma'],['や','ya'],['ら','ra'],['わ','wa']].map(([c,r]) =>
+              `<div class="guide-pair"><span class="guide-kana">${c}</span><span class="guide-rom">${r}</span></div>`
+            ).join('')}
+          </div>
+          <p class="guide-note">En katakana: ア カ サ タ ナ ハ マ ヤ ラ ワ</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>゛゜ Dakuten / Handakuten — Impuros</h3>
+          <p>Agregar <strong>゛</strong>(dakuten) cambia el sonido a su versión sonora. Agregar <strong>゜</strong>(handakuten) lo vuelve semi-sonoro.</p>
+          <div class="guide-transforms">
+            <div class="guide-transform">か → <strong>が</strong> <span class="guide-rom-inline">(ka → ga)</span></div>
+            <div class="guide-transform">さ → <strong>ざ</strong> <span class="guide-rom-inline">(sa → za)</span></div>
+            <div class="guide-transform">た → <strong>だ</strong> <span class="guide-rom-inline">(ta → da)</span></div>
+            <div class="guide-transform">は → <strong>ば</strong> → <strong>ぱ</strong> <span class="guide-rom-inline">(ha → ba → pa)</span></div>
+          </div>
+          <p class="guide-note">En katakana: カ → ガ · サ → ザ · ハ → バ → パ</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>拗音 Yōon — Compuestos</h3>
+          <p>Se forman combinando un carácter de la fila い con una versión <strong>pequeña</strong> de や, ゆ o よ.</p>
+          <div class="guide-youon-examples">
+            <div class="guide-youon-row">
+              <span class="guide-kana-big">きゃ</span>
+              <span class="guide-youon-eq">= き + <span class="guide-small-kana">ゃ</span></span>
+              <span class="guide-rom">kya</span>
+            </div>
+            <div class="guide-youon-row">
+              <span class="guide-kana-big">しゅ</span>
+              <span class="guide-youon-eq">= し + <span class="guide-small-kana">ゅ</span></span>
+              <span class="guide-rom">shu</span>
+            </div>
+            <div class="guide-youon-row">
+              <span class="guide-kana-big">ちょ</span>
+              <span class="guide-youon-eq">= ち + <span class="guide-small-kana">ょ</span></span>
+              <span class="guide-rom">cho</span>
+            </div>
+          </div>
+          <div class="guide-warning">⚠️ Fijate en el tamaño: <span style="font-family:'Noto Sans JP'">ゃゅょ</span> (pequeño, compuesto) ≠ <span style="font-family:'Noto Sans JP'">やゆよ</span> (normal)</div>
+          <p class="guide-note">En katakana: キャ シュ チョ · Con impuros: ギャ ジュ ビョ ピャ…</p>
+        </div>
+
+        <div class="guide-section">
+          <h3>ー 長音 — Vocales largas</h3>
+          <p>Ciertas sílabas se pronuncian el <strong>doble de tiempo</strong>. En rōmaji se indica con macron (ō, ū) o doble vocal (oo, uu).</p>
+          <div class="guide-lv-block">
+            <p class="guide-lv-title">En katakana → se usa ー</p>
+            <div class="guide-lv-row"><span class="guide-kana-md">コーヒー</span><span class="guide-rom-inline">ko·<strong>o</strong>·hi·<strong>i</strong> = koohii ☕</span></div>
+            <div class="guide-lv-row"><span class="guide-kana-md">ラーメン</span><span class="guide-rom-inline">ra·<strong>a</strong>·me·n = raamen 🍜</span></div>
+            <div class="guide-lv-row"><span class="guide-kana-md">スーパー</span><span class="guide-rom-inline">su·<strong>u</strong>·pa·<strong>a</strong> = suupaa 🛒</span></div>
+          </div>
+          <div class="guide-lv-block">
+            <p class="guide-lv-title">En hiragana → se agrega la vocal extendida</p>
+            <div class="guide-lv-row"><span class="guide-kana-md">おとうさん</span><span class="guide-rom-inline">o·to·<strong>u</strong>·sa·n = otousan (papá)</span></div>
+            <div class="guide-lv-row"><span class="guide-kana-md">とけい</span><span class="guide-rom-inline">to·ke·<strong>i</strong> = tokei ⏰</span></div>
+            <div class="guide-lv-row"><span class="guide-kana-md">ちょう</span><span class="guide-rom-inline">cho·<strong>u</strong> = chou 🦋</span></div>
+          </div>
+          <div class="guide-lv-block">
+            <p class="guide-lv-title">Equivalencias en rōmaji</p>
+            <div class="guide-lv-romaji">ō = oo &nbsp;·&nbsp; ū = uu &nbsp;·&nbsp; ā = aa &nbsp;·&nbsp; ē = ei o ee</div>
+          </div>
+        </div>
+
+      </div>`;
+  }
+
   function _tableEvents() {
     document.getElementById('btn-back').addEventListener('click', () => {
       State.setScreen('home'); screen();
     });
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        State.setTableTab(btn.dataset.tab); screen();
-      });
+      btn.addEventListener('click', () => { State.setTableTab(btn.dataset.tab); screen(); });
     });
   }
 
@@ -167,15 +235,26 @@ const Render = (() => {
   // CONFIG
   // ══════════════════════════════════════════════════════════════
   function _configHTML() {
-    const { sets, mode, fonts, rounds } = State.config;
-    const setsDisabled = mode === 'words';
+    const { sets, mode, fonts, rounds, wordDirection, tableFillLevel, alphabet } = State.config;
+    const isTableFill = mode === 'table-fill';
+    const isWords     = mode === 'words' || mode === 'random';
+
+    // Check for empty word pool (words / random)
+    let emptyPoolWarning = '';
+    if (isWords) {
+      const count = getFilteredWords(alphabet, sets).length;
+      if (count === 0) {
+        emptyPoolWarning = `<p class="config-warning">⚠️ Ninguna palabra disponible con los sets actuales. Activá más opciones.</p>`;
+      }
+    }
 
     const modes = [
-      { key: 'multiple', label: 'Opción múltiple' },
-      { key: 'type',     label: 'Escribir' },
-      { key: 'match',    label: 'Emparejar' },
-      { key: 'words',    label: 'Palabras' },
-      { key: 'random',   label: '🎲 Random' },
+      { key: 'multiple',   label: 'Opción múltiple' },
+      { key: 'type',       label: 'Escribir' },
+      { key: 'match',      label: 'Emparejar' },
+      { key: 'words',      label: 'Palabras' },
+      { key: 'random',     label: '🎲 Random' },
+      { key: 'table-fill', label: '📋 Completa tabla' },
     ];
 
     const modeButtons = modes.map(m =>
@@ -191,13 +270,74 @@ const Render = (() => {
     const roundOpts = [10, 20, 30, null];
     const roundButtons = roundOpts.map(r => {
       const active = rounds === r ? 'active' : '';
-      const val    = r === null ? 'all' : r;
-      const label  = r === null ? 'Todo' : r;
-      return `<button class="opt-btn ${active}" data-rounds="${val}">${label}</button>`;
+      const val = r === null ? 'all' : r;
+      return `<button class="opt-btn ${active}" data-rounds="${val}">${r === null ? 'Todo' : r}</button>`;
     }).join('');
 
-    const setsNote = setsDisabled
-      ? '<p class="config-note">No aplica en modo Palabras</p>' : '';
+    // Word direction (only for words / random)
+    const wordDirHTML = isWords ? `
+      <section class="config-section">
+        <h3>Dirección (Palabras)</h3>
+        <div class="option-grid cols-2">
+          <button class="opt-btn ${wordDirection === 'jp-to-romaji' ? 'active' : ''}" data-direction="jp-to-romaji">日 → Romaji</button>
+          <button class="opt-btn ${wordDirection === 'romaji-to-jp' ? 'active' : ''}" data-direction="romaji-to-jp">Romaji → 日</button>
+        </div>
+      </section>` : '';
+
+    // Table fill level (only for table-fill)
+    const tfLevelHTML = isTableFill ? `
+      <section class="config-section">
+        <h3>Nivel de la tabla</h3>
+        <div class="option-grid cols-3">
+          <button class="opt-btn ${tableFillLevel === 'gojuon'  ? 'active' : ''}" data-tflevel="gojuon">1 — Puros</button>
+          <button class="opt-btn ${tableFillLevel === 'dakuten' ? 'active' : ''}" data-tflevel="dakuten">2 — + Impuros</button>
+          <button class="opt-btn ${tableFillLevel === 'all'     ? 'active' : ''}" data-tflevel="all">3 — + Yōon</button>
+        </div>
+      </section>` : '';
+
+    // Characters section (hidden for table-fill, relevant for others)
+    const charSectionHTML = !isTableFill ? `
+      <section class="config-section">
+        <h3>Caracteres</h3>
+        <label class="checkbox-option">
+          <input type="checkbox" id="set-gojuon" ${sets.gojuon ? 'checked' : ''}>
+          <span class="opt-text">
+            <span class="opt-label">Gojūon — puros</span>
+            <span class="opt-sub">あ か さ た な は ま や ら わ…</span>
+          </span>
+        </label>
+        <label class="checkbox-option">
+          <input type="checkbox" id="set-dakuten" ${sets.dakuten ? 'checked' : ''}>
+          <span class="opt-text">
+            <span class="opt-label">Dakuten / Handakuten — impuros</span>
+            <span class="opt-sub">が ざ ば ぱ…</span>
+          </span>
+        </label>
+        <label class="checkbox-option">
+          <input type="checkbox" id="set-youon" ${sets.youon ? 'checked' : ''}>
+          <span class="opt-text">
+            <span class="opt-label">Yōon — compuestos</span>
+            <span class="opt-sub">きゃ しゅ ちょ…</span>
+          </span>
+        </label>
+        <label class="checkbox-option">
+          <input type="checkbox" id="set-longVowel" ${sets.longVowel ? 'checked' : ''}>
+          <span class="opt-text">
+            <span class="opt-label">Vocales largas — acentos</span>
+            <span class="opt-sub">コーヒー · おとうさん · ラーメン…</span>
+          </span>
+        </label>
+        ${emptyPoolWarning}
+      </section>` : '';
+
+    // Rounds (not for table-fill)
+    const roundsHTML = !isTableFill ? `
+      <section class="config-section">
+        <h3>Preguntas por sesión</h3>
+        <div class="option-grid cols-4">${roundButtons}</div>
+      </section>` : '';
+
+    const startDisabled = isWords && getFilteredWords(alphabet, sets).length === 0;
 
     return `
       <div class="screen screen-config">
@@ -206,51 +346,21 @@ const Render = (() => {
           <h2>Configurar práctica</h2>
         </header>
         <div class="config-body">
-
           <section class="config-section">
             <h3>Modo de juego</h3>
             <div class="option-grid cols-3">${modeButtons}</div>
           </section>
-
-          <section class="config-section">
-            <h3>Preguntas por sesión</h3>
-            <div class="option-grid cols-4">${roundButtons}</div>
-          </section>
-
-          <section class="config-section">
-            <h3>Caracteres${setsDisabled ? ' <span class="disabled-label">(deshabilitado)</span>' : ''}</h3>
-            ${setsNote}
-            <label class="checkbox-option">
-              <input type="checkbox" id="set-gojuon" ${sets.gojuon ? 'checked' : ''} ${setsDisabled ? 'disabled' : ''}>
-              <span class="opt-text">
-                <span class="opt-label">Gojūon — puros</span>
-                <span class="opt-sub">あ か さ た な は ま や ら わ…</span>
-              </span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" id="set-dakuten" ${sets.dakuten ? 'checked' : ''} ${setsDisabled ? 'disabled' : ''}>
-              <span class="opt-text">
-                <span class="opt-label">Dakuten / Handakuten — impuros</span>
-                <span class="opt-sub">が ざ ば ぱ…</span>
-              </span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" id="set-youon" ${sets.youon ? 'checked' : ''} ${setsDisabled ? 'disabled' : ''}>
-              <span class="opt-text">
-                <span class="opt-label">Yōon — compuestos</span>
-                <span class="opt-sub">きゃ しゅ ちょ…</span>
-              </span>
-            </label>
-          </section>
-
+          ${tfLevelHTML}
+          ${wordDirHTML}
+          ${roundsHTML}
+          ${charSectionHTML}
           <section class="config-section">
             <h3>Fuente de los caracteres</h3>
             <div class="option-grid cols-2">${fontButtons}</div>
           </section>
-
         </div>
         <div class="config-footer">
-          <button class="btn btn-primary" id="btn-start">▶ Empezar</button>
+          <button class="btn btn-primary" id="btn-start" ${startDisabled ? 'disabled' : ''}>▶ Empezar</button>
         </div>
       </div>`;
   }
@@ -260,12 +370,13 @@ const Render = (() => {
       State.setScreen('home'); screen();
     });
 
-    ['gojuon','dakuten','youon'].forEach(key => {
+    ['gojuon','dakuten','youon','longVowel'].forEach(key => {
       const el = document.getElementById(`set-${key}`);
       if (!el) return;
       el.addEventListener('change', () => {
         const accepted = State.toggleSet(key);
         if (!accepted) el.checked = true;
+        else screen(); // re-render for empty pool warning
       });
     });
 
@@ -280,63 +391,90 @@ const Render = (() => {
     document.querySelectorAll('[data-rounds]').forEach(btn => {
       btn.addEventListener('click', () => {
         const val = btn.dataset.rounds === 'all' ? null : parseInt(btn.dataset.rounds, 10);
-        State.setRounds(val);
-        screen();
+        State.setRounds(val); screen();
       });
+    });
+
+    document.querySelectorAll('[data-direction]').forEach(btn => {
+      btn.addEventListener('click', () => { State.setWordDirection(btn.dataset.direction); screen(); });
+    });
+
+    document.querySelectorAll('[data-tflevel]').forEach(btn => {
+      btn.addEventListener('click', () => { State.setTableFillLevel(btn.dataset.tflevel); screen(); });
     });
 
     document.getElementById('btn-start').addEventListener('click', () => {
       Game.start();
+      // Empty pool guard
+      if (State.game?.emptyPool) { screen(); return; }
       State.setScreen('game');
       screen();
     });
   }
 
   // ══════════════════════════════════════════════════════════════
-  // GAME — routes by effective mode (handles 'random' sub-mode)
+  // GAME — routes by effective mode + word direction
   // ══════════════════════════════════════════════════════════════
   function _gameHTML() {
-    switch (_effectiveMode()) {
-      case 'multiple': return _gameMultipleHTML();
-      case 'type':     return _gameTypeHTML();
-      case 'match':    return _gameMatchHTML();
-      case 'words':    return _gameWordsHTML();
+    const g  = State.game;
+    // Empty pool guard
+    if (g?.emptyPool) return `
+      <div class="screen screen-config" style="align-items:center;justify-content:center;padding:2rem">
+        <p style="text-align:center;color:var(--wrong);font-weight:700">Sin palabras disponibles.<br>Activá más sets en la configuración.</p>
+        <button class="btn btn-primary" id="btn-back-config" style="margin-top:1rem">← Configuración</button>
+      </div>`;
+
+    const em = _effectiveMode();
+    if (em === 'words') {
+      const dir = (g.wordDirection || State.config.wordDirection);
+      return dir === 'romaji-to-jp' ? _gameWordsRtJHTML() : _gameWordsHTML();
+    }
+    switch (em) {
+      case 'multiple':   return _gameMultipleHTML();
+      case 'type':       return _gameTypeHTML();
+      case 'match':      return _gameMatchHTML();
+      case 'table-fill': return _gameTableFillHTML();
     }
   }
 
   function _gameEvents() {
-    document.getElementById('btn-exit').addEventListener('click', () => {
+    if (State.game?.emptyPool) {
+      document.getElementById('btn-back-config')?.addEventListener('click', () => {
+        State.setScreen('config'); screen();
+      });
+      return;
+    }
+    document.getElementById('btn-exit')?.addEventListener('click', () => {
       State.setScreen('home'); screen();
     });
-    switch (_effectiveMode()) {
-      case 'multiple': _gameMultipleEvents(); break;
-      case 'type':     _gameTypeEvents();     break;
-      case 'match':    _gameMatchEvents();    break;
-      case 'words':    _gameWordsEvents();    break;
+    const em = _effectiveMode();
+    if (em === 'words') {
+      const dir = (State.game.wordDirection || State.config.wordDirection);
+      dir === 'romaji-to-jp' ? _gameWordsRtJEvents() : _gameWordsEvents();
+      return;
+    }
+    switch (em) {
+      case 'multiple':   _gameMultipleEvents(); break;
+      case 'type':       _gameTypeEvents();     break;
+      case 'match':      _gameMatchEvents();    break;
+      case 'table-fill': _gameTableFillEvents(); break;
     }
   }
 
   // ── Multiple choice ──────────────────────────────────────────
   function _gameMultipleHTML() {
-    const g       = State.game;
+    const g = State.game;
     const current = g.queue[g.currentIndex];
     const fbClass = g.feedback ? `feedback-${g.feedback}` : '';
-
+    const badge = g.mode === 'random' ? `<span class="mode-badge">🎲 opción múltiple</span>` : '';
     const choiceButtons = g.choices.map(c => {
       let cls = '';
       if (g.answered) {
         if (c.romaji === current.romaji) cls = 'correct';
         else if (g.feedback === 'wrong' && c.romaji === g.lastWrong) cls = 'wrong';
       }
-      return `<button class="choice-btn ${cls}" data-romaji="${c.romaji}" ${g.answered ? 'disabled' : ''}>
-        ${c.romaji}
-      </button>`;
+      return `<button class="choice-btn ${cls}" data-romaji="${c.romaji}" ${g.answered ? 'disabled' : ''}>${c.romaji}</button>`;
     }).join('');
-
-    // Badge for random mode
-    const badge = g.mode === 'random'
-      ? `<span class="mode-badge">🎲 opción múltiple</span>` : '';
-
     return `
       <div class="screen screen-game">
         ${_gameHeaderHTML()}
@@ -368,18 +506,14 @@ const Render = (() => {
 
   // ── Type mode ────────────────────────────────────────────────
   function _gameTypeHTML() {
-    const g       = State.game;
+    const g = State.game;
     const current = g.queue[g.currentIndex];
     const fbClass = g.feedback ? `feedback-${g.feedback}` : '';
     const inpCls  = g.feedback || '';
-
+    const badge = g.mode === 'random' ? `<span class="mode-badge">🎲 escribir</span>` : '';
     let hint = `<span class="type-hint">Escribí el romaji y presioná Enter</span>`;
     if (g.feedback === 'correct') hint = `<span class="type-hint reveal">✓ ${current.romaji}</span>`;
     if (g.feedback === 'wrong')   hint = `<span class="type-hint reveal wrong">✗ Respuesta: ${current.romaji}</span>`;
-
-    const badge = g.mode === 'random'
-      ? `<span class="mode-badge">🎲 escribir</span>` : '';
-
     return `
       <div class="screen screen-game">
         ${_gameHeaderHTML()}
@@ -388,15 +522,12 @@ const Render = (() => {
           <div class="kana-display ${fbClass}">${_kanaSpan(current.char, g.font)}</div>
           <div class="type-area">
             <input id="type-input" class="type-input ${inpCls}"
-              type="text" autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false"
+              type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
               placeholder="romaji..."
               ${g.answered ? 'disabled' : ''}
               value="${g.answered ? (g.lastTyped || '') : ''}">
             ${hint}
-            <button class="btn-submit" id="btn-submit" ${g.answered ? 'disabled' : ''}>
-              Verificar
-            </button>
+            <button class="btn-submit" id="btn-submit" ${g.answered ? 'disabled' : ''}>Verificar</button>
           </div>
         </div>
       </div>`;
@@ -419,7 +550,6 @@ const Render = (() => {
         screen();
       }, result === 'correct' ? Game.NEXT_DELAY_CORRECT : Game.NEXT_DELAY_WRONG);
     }
-
     if (submit) submit.addEventListener('click', doSubmit);
     if (input)  input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
   }
@@ -431,35 +561,26 @@ const Render = (() => {
     const done        = Game.answered();
     const total       = Game.totalQuestions();
     const pct         = total ? Math.round((done / total) * 100) : 0;
-
     function cardHTML(card, index, side) {
       const isMatched  = g.matchedPairs.includes(card.pairIndex);
       const selKey     = side === 'left' ? 'selectedLeft' : 'selectedRight';
       const isSelected = g[selKey] === index;
-      const cls = [
-        'match-card',
-        card.type === 'char' ? 'char-card' : 'romaji-card',
-        isMatched  ? 'matched'  : '',
-        isSelected ? 'selected' : '',
-      ].filter(Boolean).join(' ');
+      const cls = ['match-card', card.type === 'char' ? 'char-card' : 'romaji-card',
+        isMatched ? 'matched' : '', isSelected ? 'selected' : ''].filter(Boolean).join(' ');
       const font = card.type === 'char' ? card.font : FONTS[0];
       return `<button class="${cls}" data-index="${index}" data-side="${side}"
         ${isMatched ? 'data-disabled="true"' : ''} style="font-family:${font}">
         ${card.value}
       </button>`;
     }
-
     const leftHTML  = g.leftCards.map((c, i)  => cardHTML(c, i, 'left')).join('');
     const rightHTML = g.rightCards.map((c, i) => cardHTML(c, i, 'right')).join('');
-
     return `
       <div class="screen screen-game">
         <header class="game-header">
           <button class="btn-back" id="btn-exit">✕ Salir</button>
           <div class="progress-wrap">
-            <span class="progress-text">
-              Grupo ${g.groupIndex + 1}/${totalGroups} · ${done}/${total} pares
-            </span>
+            <span class="progress-text">Grupo ${g.groupIndex + 1}/${totalGroups} · ${done}/${total} pares</span>
             <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           </div>
           <div class="game-score">
@@ -489,61 +610,47 @@ const Render = (() => {
         const index  = parseInt(card.dataset.index, 10);
         const side   = card.dataset.side;
         const result = Game.selectCard(index, side);
-
-        if (result.type === 'matched' || result.type === 'group-done') Sound.correct();
-        if (result.type === 'done') Sound.correct();
-
         if (result.type === 'wrong') {
           Sound.wrong();
-          // Flash both wrong cards before re-rendering
-          const leftEl  = document.querySelector(`.match-col-cards .match-card[data-side="left"][data-index="${result.wrongLeft}"]`);
-          const rightEl = document.querySelector(`.match-col-cards .match-card[data-side="right"][data-index="${result.wrongRight}"]`);
-          [leftEl, rightEl].forEach(el => {
+          const lEl = document.querySelector(`.match-col-cards .match-card[data-side="left"][data-index="${result.wrongLeft}"]`);
+          const rEl = document.querySelector(`.match-col-cards .match-card[data-side="right"][data-index="${result.wrongRight}"]`);
+          [lEl, rEl].forEach(el => {
             if (!el) return;
             el.classList.add('flash-wrong');
             el.addEventListener('animationend', () => el.classList.remove('flash-wrong'), { once: true });
           });
-          // Re-render after the flash animation (0.5s)
           setTimeout(() => screen(), 520);
           return;
         }
-
+        if (result.type === 'matched' || result.type === 'group-done') Sound.correct();
         if (result.type === 'done') {
+          Sound.correct();
           screen();
           setTimeout(() => { State.setScreen('result'); screen(); }, 500);
           return;
         }
-
         screen();
       });
     });
   }
 
-  // ── Words mode ───────────────────────────────────────────────
+  // ── Words JP→Romaji ──────────────────────────────────────────
   function _gameWordsHTML() {
     const g       = State.game;
     const current = g.queue[g.currentIndex];
     const fbClass = g.feedback ? `feedback-${g.feedback}` : '';
     const inpCls  = g.feedback || '';
-
+    const badge = g.mode === 'random' ? `<span class="mode-badge">🎲 palabras</span>` : '';
     let revealHTML = `<div style="height:4rem"></div>`;
     if (g.feedback === 'correct') {
-      revealHTML = `
-        <div class="word-feedback correct">
-          <span class="word-romaji-confirm correct">✓ ${current.romaji}</span>
-          <span class="word-meaning-big">${current.meaning}</span>
-        </div>`;
+      revealHTML = `<div class="word-feedback correct">
+        <span class="word-romaji-confirm correct">✓ ${current.romaji}</span>
+        <span class="word-meaning-big">${current.meaning}</span></div>`;
     } else if (g.feedback === 'wrong') {
-      revealHTML = `
-        <div class="word-feedback wrong">
-          <span class="word-romaji-confirm wrong">✗ ${current.romaji}</span>
-          <span class="word-meaning-big">${current.meaning}</span>
-        </div>`;
+      revealHTML = `<div class="word-feedback wrong">
+        <span class="word-romaji-confirm wrong">✗ ${current.romaji}</span>
+        <span class="word-meaning-big">${current.meaning}</span></div>`;
     }
-
-    const badge = g.mode === 'random'
-      ? `<span class="mode-badge">🎲 palabras</span>` : '';
-
     return `
       <div class="screen screen-game">
         ${_gameHeaderHTML()}
@@ -554,14 +661,11 @@ const Render = (() => {
           ${revealHTML}
           <div class="type-area">
             <input id="type-input" class="type-input ${inpCls}"
-              type="text" autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false"
+              type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
               placeholder="romaji..."
               ${g.answered ? 'disabled' : ''}
               value="${g.answered ? (g.lastTyped || '') : ''}">
-            <button class="btn-submit" id="btn-submit" ${g.answered ? 'disabled' : ''}>
-              Verificar
-            </button>
+            <button class="btn-submit" id="btn-submit" ${g.answered ? 'disabled' : ''}>Verificar</button>
           </div>
         </div>
       </div>`;
@@ -584,9 +688,266 @@ const Render = (() => {
         screen();
       }, result === 'correct' ? Game.NEXT_DELAY_CORRECT : Game.NEXT_DELAY_WRONG);
     }
-
     if (submit) submit.addEventListener('click', doSubmit);
     if (input)  input.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
+  }
+
+  // ── Words Romaji→JP (on-screen kana keyboard) ────────────────
+  function _gameWordsRtJHTML() {
+    const g        = State.game;
+    const current  = g.queue[g.currentIndex];
+    const alphabet = State.config.alphabet;
+    const sets     = State.config.sets;
+    const input    = (g.currentInput || []).join('');
+    const fbClass  = g.feedback ? `feedback-${g.feedback}` : '';
+    const badge    = g.mode === 'random' ? `<span class="mode-badge">🎲 palabras</span>` : '';
+    const kb       = KEYBOARD_ROWS[alphabet];
+
+    const renderRow = (row, extraClass = '') =>
+      `<div class="kb-row">${row.map(c => c
+        ? `<button class="kb-key ${extraClass}" data-char="${c}">${c}</button>`
+        : `<span class="kb-cell-gap"></span>`
+      ).join('')}</div>`;
+
+    const basicHTML   = kb.basic.map(row => renderRow(row)).join('');
+    const dakutenHTML = sets.dakuten
+      ? `<p class="kb-section-label">Impuros</p>${kb.dakuten.map(r => renderRow(r,'kb-key-dakuten')).join('')}`
+      : '';
+    const specialHTML = `<div class="kb-row">${kb.special.map(c =>
+      `<button class="kb-key kb-key-special" data-char="${c}">${c}</button>`
+    ).join('')}</div>`;
+
+    let revealHTML = '';
+    if (g.feedback === 'correct') {
+      revealHTML = `<div class="word-feedback correct">
+        <span class="word-romaji-confirm correct">✓ ${current.word}</span>
+        <span class="word-meaning-big">${current.meaning}</span></div>`;
+    } else if (g.feedback === 'wrong') {
+      revealHTML = `<div class="word-feedback wrong">
+        <span class="word-romaji-confirm wrong">✗ ${current.word}</span>
+        <span class="word-meaning-big">${current.meaning}</span></div>`;
+    }
+
+    return `
+      <div class="screen screen-game">
+        ${_gameHeaderHTML()}
+        <div class="game-content rtoj-content">
+          ${badge}
+          <div class="rtoj-prompt">
+            <span class="rtoj-emoji">${current.emoji}</span>
+            <span class="rtoj-romaji">${current.romaji}</span>
+          </div>
+          <div class="kana-input-display ${fbClass}">
+            ${input
+              ? `<span style="font-family:'Noto Sans JP',sans-serif">${input}</span>`
+              : `<span class="kana-input-placeholder">Tocá las letras...</span>`}
+            ${!g.answered ? `<span class="kana-cursor">|</span>` : ''}
+          </div>
+          ${revealHTML}
+          ${g.answered ? '' : `
+            <div class="kana-keyboard">
+              <div class="kb-keys-scroll">
+                ${basicHTML}${dakutenHTML}${specialHTML}
+              </div>
+              <div class="kb-controls">
+                <button class="kb-backspace-btn" id="kb-backspace">⌫</button>
+                <button class="btn-submit" id="btn-verify" ${!input ? 'disabled' : ''}>✓ Verificar</button>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>`;
+  }
+
+  function _gameWordsRtJEvents() {
+    document.querySelectorAll('.kb-key').forEach(btn => {
+      btn.addEventListener('click', () => {
+        Game.kbInput(btn.dataset.char);
+        screen();
+      });
+    });
+    document.getElementById('kb-backspace')?.addEventListener('click', () => {
+      Game.kbBackspace(); screen();
+    });
+    document.getElementById('btn-verify')?.addEventListener('click', () => {
+      if (!(State.game.currentInput || []).length) return;
+      const result = Game.submitKana();
+      result === 'correct' ? Sound.correct() : Sound.wrong();
+      screen();
+      setTimeout(() => {
+        const done = Game.advance();
+        if (done) State.setScreen('result');
+        screen();
+      }, result === 'correct' ? Game.NEXT_DELAY_CORRECT : Game.NEXT_DELAY_WRONG);
+    });
+  }
+
+  // ── Completa la tabla ────────────────────────────────────────
+  function _gameTableFillHTML() {
+    const g        = State.game;
+    const alphabet = g.alphabet;
+    const lookup   = getLookup(alphabet);
+    const reverse  = getReverse(alphabet);
+    const answered = Object.keys(g.answers).length;
+    const total    = g.chars.length;
+
+    // Which table rows to display based on level
+    const rowDefs = [];
+    rowDefs.push(...TABLE_GOJUON_ROWS);
+    if (g.level === 'dakuten' || g.level === 'all') rowDefs.push(...TABLE_DAKUTEN_ROWS);
+    if (g.level === 'all') rowDefs.push(...TABLE_YOUON_ROWS);
+
+    const cols = (g.level === 'all' && rowDefs.some(r => r.romajis.length === 3))
+      ? null : null; // handled inline
+
+    const activeChar = g.chars[g.activeIndex];
+
+    // Build the table grid
+    const cellsHTML = rowDefs.map(row => {
+      const numCols = row.romajis.length;
+      const colClass = numCols === 3 ? 'cols-4' : 'cols-6';
+      const rowCells = row.romajis.map(r => {
+        if (!r || !lookup[r]) return `<div class="kana-cell empty tf-cell"></div>`;
+        const char = lookup[r];
+        const item = g.chars.find(c => c.char === char);
+        if (!item) return `<div class="kana-cell ${row.rowClass}"><span class="char">${char}</span></div>`;
+
+        const typed     = g.answers[char] || '';
+        const isActive  = g.activeIndex === g.chars.indexOf(item);
+        let statusCls   = '';
+        let statusHTML  = '';
+
+        if (g.submitted) {
+          const ok = _normCheck(typed, item);
+          statusCls  = ok ? 'tf-correct' : 'tf-wrong';
+          statusHTML = ok
+            ? `<span class="tf-answer tf-ok">✓</span>`
+            : `<span class="tf-answer tf-err">${typed||'—'}<br><small>${item.romaji}</small></span>`;
+        } else {
+          statusHTML = typed
+            ? `<span class="tf-typed">${typed}</span>`
+            : `<span class="tf-empty">___</span>`;
+        }
+
+        return `<div class="kana-cell ${row.rowClass} tf-cell ${isActive ? 'tf-active' : ''} ${statusCls}"
+          data-char-idx="${g.chars.indexOf(item)}">
+          <span class="char">${char}</span>
+          ${statusHTML}
+        </div>`;
+      }).join('');
+      return `<div class="kana-col-label">${row.label}</div>${rowCells}`;
+    }).join('');
+
+    const submitBtn = !g.submitted
+      ? `<button class="btn btn-primary" id="tf-verify" style="margin-top:0.5rem">
+           Verificar (${answered}/${total})
+         </button>`
+      : `<div class="tf-result-bar">
+           <span class="score-correct">✓ ${g.results.correct}</span>
+           <span class="score-wrong">✗ ${g.results.wrong}</span>
+           <span style="color:var(--primary);font-weight:700">${Math.round(g.results.correct/g.results.total*100)}%</span>
+         </div>
+         <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+           <button class="btn btn-secondary" id="tf-retry">↺ Repetir</button>
+           <button class="btn btn-primary" id="btn-home-tf">⌂ Inicio</button>
+         </div>`;
+
+    const activeHint = !g.submitted ? `
+      <div class="tf-input-zone">
+        <div class="tf-active-char">${activeChar.char}</div>
+        <input id="tf-input" class="type-input" type="text"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          placeholder="${activeChar.romaji}..."
+          value="${g.answers[activeChar.char] || ''}">
+        <button class="corner-btn" id="tf-next" style="width:2.75rem;height:2.75rem">→</button>
+      </div>` : '';
+
+    return `
+      <div class="screen screen-game">
+        <header class="game-header">
+          <button class="btn-back" id="btn-exit">✕ Salir</button>
+          <div class="progress-wrap">
+            <span class="progress-text">${answered} / ${total} completadas</span>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${Math.round(answered/total*100)}%"></div>
+            </div>
+          </div>
+          <div class="game-score" style="font-size:0.75rem">
+            ${g.level === 'gojuon' ? 'Nivel 1' : g.level === 'dakuten' ? 'Nivel 2' : 'Nivel 3'}
+          </div>
+        </header>
+        <div class="tf-layout">
+          ${activeHint}
+          <div class="tf-table-scroll">
+            <div class="kana-grid cols-6">${cellsHTML}</div>
+          </div>
+          ${submitBtn}
+        </div>
+      </div>`;
+  }
+
+  /** Normalised romaji check for table-fill (reuses game logic). */
+  function _normCheck(typed, item) {
+    const n = typed.trim().toLowerCase();
+    if (n === item.romaji) return true;
+    if (item.alt) return item.alt.some(a => a === n);
+    return false;
+  }
+
+  function _gameTableFillEvents() {
+    const g = State.game;
+
+    // Cell tap → make active
+    document.querySelectorAll('.tf-cell[data-char-idx]').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const idx = parseInt(cell.dataset.charIdx, 10);
+        Game.tfSetActive(idx);
+        // Sync input value
+        const inp = document.getElementById('tf-input');
+        if (inp) {
+          inp.value = g.answers[g.chars[idx].char] || '';
+          inp.focus();
+        }
+        screen();
+      });
+    });
+
+    // Input change → save answer
+    const inp = document.getElementById('tf-input');
+    if (inp) {
+      inp.addEventListener('input', () => Game.tfSetAnswer(inp.value));
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          Game.tfSetAnswer(inp.value);
+          Game.tfAdvance();
+          screen();
+        }
+      });
+      inp.focus();
+    }
+
+    // Next button
+    document.getElementById('tf-next')?.addEventListener('click', () => {
+      if (inp) Game.tfSetAnswer(inp.value);
+      Game.tfAdvance();
+      screen();
+    });
+
+    // Verify all
+    document.getElementById('tf-verify')?.addEventListener('click', () => {
+      if (inp) Game.tfSetAnswer(inp.value);
+      const res = Game.tfSubmit();
+      res.correct === res.total ? Sound.correct() : Sound.wrong();
+      screen();
+    });
+
+    // Retry / Home
+    document.getElementById('tf-retry')?.addEventListener('click', () => {
+      Game.start(); screen();
+    });
+    document.getElementById('btn-home-tf')?.addEventListener('click', () => {
+      State.setScreen('home'); screen();
+    });
   }
 
   // ══════════════════════════════════════════════════════════════

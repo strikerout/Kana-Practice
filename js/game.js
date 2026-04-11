@@ -37,21 +37,11 @@ const Game = (() => {
     return shuffle(others).slice(0, count);
   }
 
-  /**
-   * Pick a sub-mode for one question in a 'random' session.
-   * Word items always use 'words'; char items alternate between multiple/type.
-   */
   function _pickSubMode(itemType) {
     if (itemType === 'word') return 'words';
     return Math.random() < 0.5 ? 'multiple' : 'type';
   }
 
-  /**
-   * Build two independently-shuffled card columns for match mode.
-   * Left  = character cards (one random font each).
-   * Right = romaji cards (always base font).
-   * Both shuffled in different orders so pairs never align visually.
-   */
   function _buildMatchColumns(group) {
     const leftCards = shuffle(group.map((item, i) => ({
       type: 'char', value: item.char, pairIndex: i, font: _font(),
@@ -62,10 +52,22 @@ const Game = (() => {
     return { leftCards, rightCards };
   }
 
-  /** Limit a queue to the configured number of rounds. */
   function _applyRounds(arr) {
     const r = State.config.rounds;
     return (r && arr.length > r) ? arr.slice(0, r) : arr;
+  }
+
+  /** Build the character array for the table-fill mode from a level. */
+  function _tableFillChars(alphabet, level) {
+    const H = alphabet === 'hiragana';
+    const base = H ? HIRAGANA_GOJUON    : KATAKANA_GOJUON;
+    const daku = H ? [...HIRAGANA_DAKUTEN, ...HIRAGANA_HANDAKUTEN]
+                   : [...KATAKANA_DAKUTEN, ...KATAKANA_HANDAKUTEN];
+    const yoon = H ? HIRAGANA_YOUON     : KATAKANA_YOUON;
+
+    if (level === 'gojuon')  return [...base];
+    if (level === 'dakuten') return [...base, ...daku];
+    return [...base, ...daku, ...yoon]; // 'all'
   }
 
   // ─── Public API ──────────────────────────────────────────────
@@ -75,19 +77,43 @@ const Game = (() => {
       const cfg  = State.config;
       const mode = cfg.mode;
 
-      // ── Words ───────────────────────────────────────────────
-      if (mode === 'words') {
-        const queue = _applyRounds(shuffle(getWords(cfg.alphabet)));
+      // ── Table fill ───────────────────────────────────────────
+      if (mode === 'table-fill') {
+        const chars = _tableFillChars(cfg.alphabet, cfg.tableFillLevel);
         State.setGame({
-          mode, queue, currentIndex: 0,
-          correct: 0, wrong: 0,
-          answered: false, feedback: null,
-          font: _font(), lastTyped: '',
+          mode,
+          level:       cfg.tableFillLevel,
+          alphabet:    cfg.alphabet,
+          chars,
+          answers:     {}, // char.char → typed string
+          activeIndex: 0,
+          submitted:   false,
+          results:     null,
         });
         return;
       }
 
-      // ── Match ───────────────────────────────────────────────
+      // ── Words ────────────────────────────────────────────────
+      if (mode === 'words') {
+        const allWords = getFilteredWords(cfg.alphabet, cfg.sets);
+        if (allWords.length === 0) {
+          State.setGame({ mode, emptyPool: true });
+          return;
+        }
+        const queue = _applyRounds(shuffle(allWords));
+        State.setGame({
+          mode,
+          wordDirection: cfg.wordDirection,
+          queue, currentIndex: 0,
+          correct: 0, wrong: 0,
+          answered: false, feedback: null,
+          font: _font(), lastTyped: '',
+          currentInput: [],
+        });
+        return;
+      }
+
+      // ── Match ────────────────────────────────────────────────
       if (mode === 'match') {
         const groupSize = window.innerWidth >= 540
           ? MATCH_GROUP_SIZE_DESKTOP
@@ -106,21 +132,24 @@ const Game = (() => {
         return;
       }
 
-      // ── Random — mixed queue of chars + words ───────────────
+      // ── Random ───────────────────────────────────────────────
       if (mode === 'random') {
         const pool    = getData(cfg.alphabet, cfg.sets);
+        const words   = getFilteredWords(cfg.alphabet, cfg.sets);
         const chars   = pool.map(c => ({ ...c, itemType: 'char' }));
-        const words   = getWords(cfg.alphabet).map(w => ({ ...w, itemType: 'word' }));
-        const queue   = _applyRounds(shuffle([...chars, ...words]));
-        const subMode = _pickSubMode(queue[0].itemType);
+        const wordItems = words.map(w => ({ ...w, itemType: 'word' }));
+        const queue   = _applyRounds(shuffle([...chars, ...wordItems]));
+        const subMode = _pickSubMode(queue[0]?.itemType);
         const choices = subMode === 'multiple'
           ? Game._buildChoices(queue[0], pool) : null;
         State.setGame({
           mode, subMode, pool, queue, currentIndex: 0,
+          wordDirection: cfg.wordDirection,
           correct: 0, wrong: 0,
           answered: false, feedback: null,
           font: _font(), choices,
           lastTyped: '', lastWrong: null,
+          currentInput: [],
         });
         return;
       }
@@ -129,9 +158,7 @@ const Game = (() => {
       const pool  = getData(cfg.alphabet, cfg.sets);
       const queue = _applyRounds(shuffle(pool));
       const choices = mode === 'multiple'
-        ? Game._buildChoices(queue[0], pool)
-        : null;
-
+        ? Game._buildChoices(queue[0], pool) : null;
       State.setGame({
         mode, subMode: null, pool, queue, currentIndex: 0,
         correct: 0, wrong: 0,
@@ -147,7 +174,7 @@ const Game = (() => {
       return shuffle([item, ...wrongs]);
     },
 
-    // ── Submit: type / words ─────────────────────────────────
+    // ── Submit: type / words ────────────────────────────────
     submitType(typed) {
       const g  = State.game;
       const ok = _checkRomaji(typed, g.queue[g.currentIndex]);
@@ -159,7 +186,7 @@ const Game = (() => {
       return ok ? 'correct' : 'wrong';
     },
 
-    // ── Submit: multiple choice ──────────────────────────────
+    // ── Submit: multiple choice ─────────────────────────────
     submitChoice(choiceRomaji) {
       const g  = State.game;
       const ok = _norm(choiceRomaji) === _norm(g.queue[g.currentIndex].romaji);
@@ -171,8 +198,33 @@ const Game = (() => {
       return ok ? 'correct' : 'wrong';
     },
 
-    // ── Advance (type / multiple / random / words) ───────────
-    /** Returns true when the session is over. */
+    // ── On-screen keyboard input (Romaji→JP) ────────────────
+    kbInput(char) {
+      const g = State.game;
+      if (g.answered) return;
+      State.updateGame({ currentInput: [...(g.currentInput || []), char] });
+    },
+    kbBackspace() {
+      const g = State.game;
+      if (g.answered) return;
+      const arr = [...(g.currentInput || [])];
+      arr.pop();
+      State.updateGame({ currentInput: arr });
+    },
+    submitKana() {
+      const g      = State.game;
+      const typed  = (g.currentInput || []).join('');
+      const target = g.queue[g.currentIndex].word;
+      const ok     = typed === target;
+      State.updateGame({
+        answered: true, feedback: ok ? 'correct' : 'wrong',
+        correct: g.correct + (ok ? 1 : 0),
+        wrong:   g.wrong   + (ok ? 0 : 1),
+      });
+      return ok ? 'correct' : 'wrong';
+    },
+
+    // ── Advance (type / multiple / random / words) ──────────
     advance() {
       const g    = State.game;
       const next = g.currentIndex + 1;
@@ -188,6 +240,7 @@ const Game = (() => {
         State.updateGame({
           currentIndex: next, answered: false, feedback: null,
           font: newFont, subMode, choices, lastTyped: '', lastWrong: null,
+          currentInput: [],
         });
         return false;
       }
@@ -204,36 +257,26 @@ const Game = (() => {
 
       State.updateGame({
         currentIndex: next, answered: false, feedback: null,
-        font: newFont, lastTyped: '',
+        font: newFont, lastTyped: '', currentInput: [],
       });
       return false;
     },
 
-    // ── Match: card selection ────────────────────────────────
-    /**
-     * @param {number} index - index within leftCards or rightCards
-     * @param {'left'|'right'} side
-     * @returns {{ type: string, wrongLeft?: number, wrongRight?: number }}
-     */
+    // ── Match: card selection ───────────────────────────────
     selectCard(index, side) {
-      const g = State.game;
-
+      const g    = State.game;
       const card = side === 'left' ? g.leftCards[index] : g.rightCards[index];
 
-      // Ignore already-matched cards
       if (g.matchedPairs.includes(card.pairIndex)) return { type: 'noop' };
 
-      // Toggle deselect on same card
       const selKey = side === 'left' ? 'selectedLeft' : 'selectedRight';
       if (g[selKey] === index) {
         State.updateGame({ [selKey]: null });
         return { type: 'deselect' };
       }
 
-      // Set new selection
       State.updateGame({ [selKey]: index });
 
-      // Determine if both sides now have a selection
       const leftIdx  = side === 'left'  ? index : g.selectedLeft;
       const rightIdx = side === 'right' ? index : g.selectedRight;
 
@@ -242,7 +285,6 @@ const Game = (() => {
         return { type: 'select' };
       }
 
-      // Both selected — check pair match
       const leftCard  = g.leftCards[leftIdx];
       const rightCard = g.rightCards[rightIdx];
       const isMatch   = leftCard.pairIndex === rightCard.pairIndex;
@@ -259,7 +301,6 @@ const Game = (() => {
 
         if (!groupDone) return { type: 'matched' };
 
-        // Advance to next group
         const nextGroupIdx = g.groupIndex + 1;
         if (nextGroupIdx >= g.groups.length) return { type: 'done' };
 
@@ -280,16 +321,59 @@ const Game = (() => {
       }
     },
 
-    // ── Score helpers ────────────────────────────────────────
+    // ── Table fill: set active cell ─────────────────────────
+    tfSetActive(index) {
+      State.updateGame({ activeIndex: index });
+    },
+
+    /** Set the typed answer for the current active cell. */
+    tfSetAnswer(text) {
+      const g = State.game;
+      const char = g.chars[g.activeIndex].char;
+      State.updateGame({ answers: { ...g.answers, [char]: text } });
+    },
+
+    /** Advance to next unanswered cell, or stay if all answered. */
+    tfAdvance() {
+      const g = State.game;
+      // Find next unanswered starting from current+1
+      for (let i = 1; i <= g.chars.length; i++) {
+        const idx = (g.activeIndex + i) % g.chars.length;
+        if (!g.answers[g.chars[idx].char]) {
+          State.updateGame({ activeIndex: idx });
+          return;
+        }
+      }
+      // All answered — stay on current
+    },
+
+    /** Submit all answers, compute results. Returns { correct, wrong, total }. */
+    tfSubmit() {
+      const g = State.game;
+      let correct = 0, wrong = 0;
+      g.chars.forEach(item => {
+        const typed = g.answers[item.char] || '';
+        if (_checkRomaji(typed, item)) correct++;
+        else wrong++;
+      });
+      const results = { correct, wrong, total: g.chars.length };
+      State.updateGame({ submitted: true, results });
+      return results;
+    },
+
+    // ── Score helpers ───────────────────────────────────────
     totalQuestions() {
       const g = State.game;
       if (!g) return 0;
-      return g.mode === 'match' ? g.totalPairs : g.queue.length;
+      if (g.mode === 'match')      return g.totalPairs;
+      if (g.mode === 'table-fill') return g.chars.length;
+      return g.queue.length;
     },
 
     answered() {
       const g = State.game;
       if (!g) return 0;
+      if (g.mode === 'table-fill') return Object.keys(g.answers).length;
       return g.correct + g.wrong;
     },
 

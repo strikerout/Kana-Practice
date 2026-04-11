@@ -13,15 +13,18 @@ const State = (() => {
   const DEFAULT_CONFIG = {
     alphabet: 'hiragana',           // 'hiragana' | 'katakana'
     sets: {
-      gojuon:  true,                // always start with gojūon enabled
-      dakuten: false,               // dakuten + handakuten together
-      youon:   false,               // yōon compounds
+      gojuon:   true,               // always start with gojūon enabled
+      dakuten:  false,              // dakuten + handakuten together
+      youon:    false,              // yōon compounds
+      longVowel: false,             // words with long vowels (ー / おう / えい…)
     },
-    mode: 'multiple',               // 'multiple' | 'type' | 'match' | 'words' | 'random'
+    mode: 'multiple',               // 'multiple' | 'type' | 'match' | 'words' | 'random' | 'table-fill'
     fonts: 'base',                  // 'base' | 'random'
     rounds: 20,                     // questions per session: 10 | 20 | 30 | null (all)
     theme: 'light',                 // 'light' | 'dark'
     sound: true,                    // sound effects on/off
+    wordDirection: 'jp-to-romaji',  // 'jp-to-romaji' | 'romaji-to-jp'
+    tableFillLevel: 'gojuon',       // 'gojuon' | 'dakuten' | 'all'
   };
 
   // ─── Internal state ──────────────────────────────────────────
@@ -88,12 +91,24 @@ const State = (() => {
       _save();
     },
     toggleSet(key) {
-      // Prevent unchecking the last active set
-      const active = Object.values(_config.sets).filter(Boolean).length;
-      if (_config.sets[key] && active === 1) return false; // rejected
+      // longVowel is a word-filter option, not a character set —
+      // it's excluded from the minimum-one-set guard.
+      const CHAR_SETS = ['gojuon', 'dakuten', 'youon'];
+      if (CHAR_SETS.includes(key)) {
+        const active = CHAR_SETS.filter(k => _config.sets[k]).length;
+        if (_config.sets[key] && active === 1) return false; // prevent removing last char set
+      }
       _config.sets[key] = !_config.sets[key];
       _save();
       return true;
+    },
+    setWordDirection(d) {
+      _config.wordDirection = d;
+      _save();
+    },
+    setTableFillLevel(l) {
+      _config.tableFillLevel = l;
+      _save();
     },
 
     // Table tab (session-only)

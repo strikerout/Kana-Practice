@@ -591,3 +591,148 @@ function shuffle(arr) {
   }
   return a;
 }
+
+// ─── Reverse lookups: char → romaji ──────────────────────────────
+// Built from the lookup maps above. Multiple romajis map to the same char
+// in some cases — last writer wins (acceptable for our use cases).
+const HIRAGANA_REVERSE = Object.fromEntries(
+  Object.entries(HIRAGANA_LOOKUP).map(([r, c]) => [c, r])
+);
+const KATAKANA_REVERSE = Object.fromEntries(
+  Object.entries(KATAKANA_LOOKUP).map(([r, c]) => [c, r])
+);
+
+/** Returns the char→romaji reverse lookup for the given alphabet. */
+function getReverse(alphabet) {
+  return alphabet === 'hiragana' ? HIRAGANA_REVERSE : KATAKANA_REVERSE;
+}
+
+// ─── Character sets used for word feature detection ───────────────
+const _HIRA_DAKUTEN_CHARS = new Set(
+  [...HIRAGANA_DAKUTEN, ...HIRAGANA_HANDAKUTEN].map(c => c.char)
+);
+const _KATA_DAKUTEN_CHARS = new Set(
+  [...KATAKANA_DAKUTEN, ...KATAKANA_HANDAKUTEN].map(c => c.char)
+);
+const _HIRA_YOUON_SMALL = new Set(['ゃ', 'ゅ', 'ょ']);
+const _KATA_YOUON_SMALL = new Set(['ャ', 'ュ', 'ョ']);
+
+// ─── Word feature detection ───────────────────────────────────────
+
+/**
+ * Detect which optional features a word uses.
+ * Returns { dakuten: bool, youon: bool, longVowel: bool }
+ *
+ * Long-vowel detection:
+ *   • Katakana: explicit ー mark
+ *   • Hiragana: any kana whose romaji ends in 'o' followed by 'う',
+ *     or ends in 'e' followed by 'い', or small-kana ょ/ゅ + う,
+ *     or doubled vowels おお/ああ/うう/いい/ええ
+ */
+function detectWordFeatures(word, alphabet) {
+  const H = alphabet === 'hiragana';
+  const dakutenSet = H ? _HIRA_DAKUTEN_CHARS : _KATA_DAKUTEN_CHARS;
+  const youonSmall = H ? _HIRA_YOUON_SMALL   : _KATA_YOUON_SMALL;
+  const reverse    = H ? HIRAGANA_REVERSE     : KATAKANA_REVERSE;
+
+  let dakuten = false, youon = false, longVowel = false;
+  const chars = [...word];
+
+  for (let i = 0; i < chars.length; i++) {
+    const c = chars[i];
+    if (!dakuten && dakutenSet.has(c)) dakuten = true;
+    if (!youon   && youonSmall.has(c)) youon   = true;
+
+    if (!longVowel) {
+      if (!H && c === 'ー') {
+        longVowel = true;
+      } else if (H && i < chars.length - 1) {
+        const next = chars[i + 1];
+        const rom  = reverse[c];
+        if (rom) {
+          const v = rom[rom.length - 1];
+          if ((v === 'o' || v === 'u') && next === 'う') longVowel = true;
+          if (v === 'e' && next === 'い') longVowel = true;
+          if (v === 'a' && next === 'あ') longVowel = true;
+          if (v === 'i' && next === 'い') longVowel = true;
+          if (v === 'o' && next === 'お') longVowel = true;
+        }
+        // Small-kana + extending vowel (e.g. ょ + う = long o)
+        if ((c === 'ょ' || c === 'ゅ') && next === 'う') longVowel = true;
+      }
+    }
+  }
+
+  return { dakuten, youon, longVowel };
+}
+
+/**
+ * Returns true when a word is compatible with the enabled sets.
+ * A word is excluded if it uses a feature that's disabled.
+ * Pure gojūon words always pass (gojūon is always the baseline).
+ */
+function wordMatchesSets(word, alphabet, sets) {
+  const f = detectWordFeatures(word, alphabet);
+  if (f.dakuten   && !sets.dakuten)   return false;
+  if (f.youon     && !sets.youon)     return false;
+  if (f.longVowel && !sets.longVowel) return false;
+  return true;
+}
+
+/**
+ * Returns words filtered by the currently enabled sets.
+ * Call this instead of getWords() for gameplay.
+ */
+function getFilteredWords(alphabet, sets) {
+  return getWords(alphabet).filter(w => wordMatchesSets(w.word, alphabet, sets));
+}
+
+// ─── On-screen kana keyboard layout ──────────────────────────────
+// Used in Romaji→JP words mode.
+// null entries = empty cells (to align the 5-column grid).
+const KEYBOARD_ROWS = {
+  hiragana: {
+    basic: [
+      ['あ','い','う','え','お'],
+      ['か','き','く','け','こ'],
+      ['さ','し','す','せ','そ'],
+      ['た','ち','つ','て','と'],
+      ['な','に','ぬ','ね','の'],
+      ['は','ひ','ふ','へ','ほ'],
+      ['ま','み','む','め','も'],
+      ['や', null,'ゆ', null,'よ'],
+      ['ら','り','る','れ','ろ'],
+      ['わ', null,'を', null,'ん'],
+    ],
+    dakuten: [
+      ['が','ぎ','ぐ','げ','ご'],
+      ['ざ','じ','ず','ぜ','ぞ'],
+      ['だ', null, null,'で','ど'],
+      ['ば','び','ぶ','べ','ぼ'],
+      ['ぱ','ぴ','ぷ','ぺ','ぽ'],
+    ],
+    special: ['っ','ゃ','ゅ','ょ'],
+  },
+  katakana: {
+    basic: [
+      ['ア','イ','ウ','エ','オ'],
+      ['カ','キ','ク','ケ','コ'],
+      ['サ','シ','ス','セ','ソ'],
+      ['タ','チ','ツ','テ','ト'],
+      ['ナ','ニ','ヌ','ネ','ノ'],
+      ['ハ','ヒ','フ','ヘ','ホ'],
+      ['マ','ミ','ム','メ','モ'],
+      ['ヤ', null,'ユ', null,'ヨ'],
+      ['ラ','リ','ル','レ','ロ'],
+      ['ワ', null,'ヲ', null,'ン'],
+    ],
+    dakuten: [
+      ['ガ','ギ','グ','ゲ','ゴ'],
+      ['ザ','ジ','ズ','ゼ','ゾ'],
+      ['ダ', null, null,'デ','ド'],
+      ['バ','ビ','ブ','ベ','ボ'],
+      ['パ','ピ','プ','ペ','ポ'],
+    ],
+    special: ['ッ','ャ','ュ','ョ','ー'],
+  },
+};
