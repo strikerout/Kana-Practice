@@ -9,9 +9,10 @@
 
 - **Two alphabets** — Hiragana (あ) and Katakana (ア), fully switchable
 - **Six game modes** — multiple choice, write, match, words, complete the table, and random mix
-- **193 vocabulary words** with emoji and Spanish meanings, shuffled every session
+- **201 vocabulary words** with emoji and Spanish meanings, shuffled every session
 - **Macron notation for long vowels** — ā ī ū ē ō, with a built-in helper bar so you can type them on any device
-- **Reference guide** — built-in explanation of Gojūon, Dakuten, Yōon, and long vowels with examples
+- **📝 Repaso** — theory review screen with collapsible sections explaining every character type
+- **Reference guide** — interactive table guide with examples for Gojūon, Dakuten, Yōon, long vowels, and sokuon
 - **Font rotation** — characters appear in up to 5 different Japanese typefaces per session
 - **Sound effects** — chime on correct, thud on wrong (Web Audio API, no files needed)
 - **Dark mode** — toggle anytime, preference saved
@@ -39,13 +40,13 @@ Every session is configurable:
 | Option | Choices |
 |--------|---------|
 | **Alphabet** | Hiragana / Katakana |
-| **Character sets** | Gojūon · Dakuten+Handakuten · Yōon · Vocales largas |
+| **Character sets** | Gojūon · Dakuten+Handakuten · Yōon · Vocales largas · Sokuon (っ/ッ) |
 | **Questions per session** | 10 / 20 / 30 / All |
 | **Word direction** | JP → Romaji / Romaji → JP |
 | **Font style** | Base font / Random (rotates per question) |
 | **Table fill level** | Level 1: Gojūon · Level 2: +Impuros · Level 3: +Yōon |
 
-Character set selection also filters the word pool — enabling *vocales largas* guarantees a proportion of words with long vowels (ー, おう…) appear in the session.
+Character set selection also filters the word pool — enabling *vocales largas* or *sokuon* guarantees a proportion of words with those features appear in the session.
 
 All preferences are saved in localStorage.
 
@@ -78,9 +79,21 @@ When typing long vowel answers, a **[ ā ][ ī ][ ū ][ ē ][ ō ]** helper bar 
 
 ---
 
+## 📝 Repaso
+
+A dedicated theory screen (button on the home screen) with five collapsible sections:
+
+- **Gojūon** — what the base table is and how to study it
+- **Dakuten ゛/ Handakuten ゜** — the tenten and maru marks, which sounds they change and how
+- **Yōon** — how compound sounds are formed, and why small ゃゅょ ≠ regular やゆよ
+- **Vocales largas** — the macron, the chōonpu ー, all hiragana patterns, ou→ō and ei→ē rules
+- **Sokuon っ/ッ** — the double consonant, the romaji rule (duplicate the next consonant), and the special っ+ち→cch case
+
+---
+
 ## 📖 Built-in Guide
 
-The **📖 Guía** tab (inside Ver Tabla) explains all character types with examples:
+The **📖 Guía** tab (inside Ver Tabla) shows all character types with visual examples:
 
 - **Gojūon** — the 46 base characters
 - **Dakuten / Handakuten** — how ゛ and ゜ change a sound (か→が, は→ぱ)
@@ -97,7 +110,7 @@ The **📖 Guía** tab (inside Ver Tabla) explains all character types with exam
 | Dakuten | 20 | 20 |
 | Handakuten | 5 | 5 |
 | Yōon | 33 | 33 |
-| **Words** | **103** | **90** |
+| **Words** | **108** | **93** |
 
 ---
 
