@@ -76,6 +76,7 @@ const Game = (() => {
       { key: 'dakuten',   on: sets.dakuten },
       { key: 'youon',     on: sets.youon },
       { key: 'longVowel', on: sets.longVowel },
+      { key: 'sokuon',    on: sets.sokuon },
     ].forEach(({ key, on }) => {
       if (!on) return;
       const pool = all.filter(w => detectWordFeatures(w.word, alphabet)[key]);

@@ -241,6 +241,46 @@ const Render = (() => {
             </div>
           </details>
 
+          <details class="repaso-item">
+            <summary class="repaso-title">
+              <span class="repaso-icon" style="font-family:'Noto Sans JP',sans-serif">っ</span>
+              <span>Sokuon (促音) — Doble consonante</span>
+              <span class="repaso-chevron">›</span>
+            </summary>
+            <div class="repaso-content">
+              <p>El carácter <strong>っ</strong> (hiragana) / <strong>ッ</strong> (katakana) se llama <strong>sokuon</strong> (促音). Informalmente: <strong>tsu pequeño</strong> (ちいさいつ).</p>
+              <p>No tiene sonido propio. Crea una <strong>pausa de una mora</strong> y hace que la consonante siguiente se pronuncie doble — como si la "retuvieras" un instante antes de soltarla.</p>
+
+              <div class="repaso-subsection">
+                <h4>Regla en romaji: duplicar la consonante siguiente</h4>
+                <table class="repaso-table">
+                  <thead><tr><th>Combinación</th><th>Romaji</th><th>Ejemplo</th></tr></thead>
+                  <tbody>
+                    <tr><td class="rex-kana-sm">っ + か</td><td><strong>kk</strong></td><td class="rex-kana-sm">がっこう → gakkō</td></tr>
+                    <tr><td class="rex-kana-sm">っ + た</td><td><strong>tt</strong></td><td class="rex-kana-sm">きって → kitte</td></tr>
+                    <tr><td class="rex-kana-sm">っ + さ</td><td><strong>ss</strong></td><td class="rex-kana-sm">ざっし → zasshi</td></tr>
+                    <tr><td class="rex-kana-sm">っ + ぱ</td><td><strong>pp</strong></td><td class="rex-kana-sm">きっぷ → kippu</td></tr>
+                    <tr><td class="rex-kana-sm">ッ + ク</td><td><strong>kk</strong></td><td class="rex-kana-sm">サッカー → sakkā</td></tr>
+                    <tr><td class="rex-kana-sm">ッ + ト</td><td><strong>tt</strong></td><td class="rex-kana-sm">ロケット → roketto</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="repaso-subsection">
+                <h4>Caso especial: っ + ち (chi)</h4>
+                <p>Antes de <strong>ち</strong>, se duplica el dígrafo completo "ch" → <strong>cch</strong> (no "tch").</p>
+                <div class="repaso-examples">
+                  <div class="repaso-row-ex"><span class="rex-kana">サンドイッチ</span><span class="rex-rom">sandoicchi</span></div>
+                </div>
+              </div>
+
+              <div class="repaso-warning">
+                ⚠️ Tamaño importa: <span style="font-family:'Noto Sans JP',sans-serif">っ</span> (pequeño, sokuon) ≠ <span style="font-family:'Noto Sans JP',sans-serif">つ</span> (normal, "tsu")
+              </div>
+              <p class="repaso-tip">💡 En el teclado de esta app, っ/ッ está en la fila de caracteres especiales.</p>
+            </div>
+          </details>
+
         </div>
       </div>`;
   }
@@ -483,8 +523,15 @@ const Render = (() => {
         <label class="checkbox-option">
           <input type="checkbox" id="set-longVowel" ${sets.longVowel ? 'checked' : ''}>
           <span class="opt-text">
-            <span class="opt-label">Vocales largas — acentos</span>
-            <span class="opt-sub">コーヒー · おとうさん · ラーメン…</span>
+            <span class="opt-label">Vocales largas — acentos (ō ū ā ē ī)</span>
+            <span class="opt-sub">コーヒー · がっこう → kōhī · gakkō…</span>
+          </span>
+        </label>
+        <label class="checkbox-option">
+          <input type="checkbox" id="set-sokuon" ${sets.sokuon ? 'checked' : ''}>
+          <span class="opt-text">
+            <span class="opt-label">Sokuon — doble consonante (っ / ッ)</span>
+            <span class="opt-sub">きって · サッカー → kitte · sakkā…</span>
           </span>
         </label>
         ${emptyPoolWarning}
@@ -530,7 +577,7 @@ const Render = (() => {
       State.setScreen('home'); screen();
     });
 
-    ['gojuon','dakuten','youon','longVowel'].forEach(key => {
+    ['gojuon','dakuten','youon','longVowel','sokuon'].forEach(key => {
       const el = document.getElementById(`set-${key}`);
       if (!el) return;
       el.addEventListener('change', () => {

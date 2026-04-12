@@ -383,6 +383,12 @@ const WORDS_HIRAGANA = [
   { word: 'こころ',   romaji: 'kokoro',    emoji: '❤️',  meaning: 'corazón' },
   { word: 'むら',     romaji: 'mura',      emoji: '🏘️',  meaning: 'aldea' },
   { word: 'ひかり',   romaji: 'hikari',    emoji: '💡',  meaning: 'luz' },
+  // Sokuon (っ — doble consonante)
+  { word: 'きって',   romaji: 'kitte',     emoji: '✉️',  meaning: 'estampilla' },
+  { word: 'きっぷ',   romaji: 'kippu',     emoji: '🎟️',  meaning: 'boleto' },
+  { word: 'にっき',   romaji: 'nikki',     emoji: '📔',  meaning: 'diario' },
+  { word: 'せっけん', romaji: 'sekken',    emoji: '🧼',  meaning: 'jabón' },
+  { word: 'ざっし',   romaji: 'zasshi',    emoji: '📰',  meaning: 'revista' },
 ];
 
 const WORDS_KATAKANA = [
@@ -492,6 +498,10 @@ const WORDS_KATAKANA = [
   { word: 'ドラマ',         romaji: 'dorama',      emoji: '🎭',  meaning: 'serie / drama' },
   { word: 'ニュース',       romaji: 'nyūsu',       alt: ['nyuusu'],     emoji: '📰',  meaning: 'noticias' },
   { word: 'チケット',       romaji: 'chiketto',    emoji: '🎫',  meaning: 'ticket' },
+  // Sokuon (ッ — doble consonante)
+  { word: 'ペット',         romaji: 'petto',       emoji: '🐾',  meaning: 'mascota' },
+  { word: 'コップ',         romaji: 'koppu',       emoji: '🥤',  meaning: 'vaso' },
+  { word: 'ネット',         romaji: 'netto',       emoji: '🌐',  meaning: 'red / internet' },
 ];
 
 // ─── Table layout definitions ────────────────────────────────────
@@ -663,7 +673,8 @@ function detectWordFeatures(word, alphabet) {
     }
   }
 
-  return { dakuten, youon, longVowel };
+  const sokuon = word.includes('っ') || word.includes('ッ');
+  return { dakuten, youon, longVowel, sokuon };
 }
 
 /**
@@ -676,6 +687,7 @@ function wordMatchesSets(word, alphabet, sets) {
   if (f.dakuten   && !sets.dakuten)   return false;
   if (f.youon     && !sets.youon)     return false;
   if (f.longVowel && !sets.longVowel) return false;
+  if (f.sokuon    && !sets.sokuon)    return false;
   return true;
 }
 

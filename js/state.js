@@ -17,6 +17,7 @@ const State = (() => {
       dakuten:  false,              // dakuten + handakuten together
       youon:    false,              // yōon compounds
       longVowel: false,             // words with long vowels (ー / おう / えい…)
+      sokuon:    false,             // words with っ/ッ (double consonant)
     },
     mode: 'multiple',               // 'multiple' | 'type' | 'match' | 'words' | 'random' | 'table-fill'
     fonts: 'base',                  // 'base' | 'random'
