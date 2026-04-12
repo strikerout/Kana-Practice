@@ -554,7 +554,7 @@ const Render = (() => {
         </header>
         <div class="config-body">
           <section class="config-section">
-            <h3>Modo de juego</h3>
+            <h3>Modo de juego <button class="section-help-btn" id="btn-modes-help" aria-label="Explicar modos">?</button></h3>
             <div class="option-grid cols-3">${modeButtons}</div>
           </section>
           ${tfLevelHTML}
@@ -569,6 +569,23 @@ const Render = (() => {
         <div class="config-footer">
           <button class="btn btn-primary" id="btn-start" ${startDisabled ? 'disabled' : ''}>▶ Empezar</button>
         </div>
+
+        <!-- Popup explicación de modos -->
+        <div class="info-modal-overlay" id="modes-modal">
+          <div class="info-modal-box">
+            <button class="info-modal-close" id="modes-modal-close">✕</button>
+            <h3 class="info-modal-title">Modos de juego</h3>
+            <ul class="info-modal-list">
+              <li><strong>Opción múltiple</strong> — Ves un carácter kana y elegís entre 4 opciones de romaji.</li>
+              <li><strong>Escribir</strong> — Ves un carácter kana y escribís el romaji sin ayuda.</li>
+              <li><strong>Emparejar</strong> — Dos columnas: caracteres a la izquierda, romaji a la derecha. Tocás uno de cada lado para hacer el par.</li>
+              <li><strong>Palabras</strong> — Ves una palabra completa con emoji de pista. Podés elegir dirección: Japonés→Romaji o Romaji→Japonés con teclado kana en pantalla.</li>
+              <li><strong>📋 Completa tabla</strong> — Ves toda la tabla del silabario y completás el romaji de cada carácter. Tiene 3 niveles de dificultad.</li>
+              <li><strong>🎲 Random</strong> — Cada pregunta es una sorpresa: puede salir cualquier modo o palabras del vocabulario mezcladas.</li>
+            </ul>
+          </div>
+        </div>
+
       </div>`;
   }
 
@@ -608,6 +625,18 @@ const Render = (() => {
 
     document.querySelectorAll('[data-tflevel]').forEach(btn => {
       btn.addEventListener('click', () => { State.setTableFillLevel(btn.dataset.tflevel); screen(); });
+    });
+
+    // Popup modos de juego
+    const modesModal = document.getElementById('modes-modal');
+    document.getElementById('btn-modes-help')?.addEventListener('click', () => {
+      modesModal?.classList.add('open');
+    });
+    document.getElementById('modes-modal-close')?.addEventListener('click', () => {
+      modesModal?.classList.remove('open');
+    });
+    modesModal?.addEventListener('click', e => {
+      if (e.target === modesModal) modesModal.classList.remove('open');
     });
 
     document.getElementById('btn-start').addEventListener('click', () => {

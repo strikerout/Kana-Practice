@@ -1162,6 +1162,96 @@ ul, ol { list-style: none; }
 /* Home actions with 3 buttons */
 .home-actions.three { max-width: 320px; }
 
+/* ─── Section help button (? next to section titles) ────────── */
+.section-help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  transition: background var(--t), transform var(--t);
+  -webkit-tap-highlight-color: transparent;
+}
+.section-help-btn:hover { background: var(--primary-dark); transform: scale(1.15); }
+
+/* ─── Info modal (popup) ─────────────────────────────────────── */
+.info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gap);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.info-modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.info-modal-box {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  max-width: 380px;
+  width: 100%;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.95);
+  transition: transform 200ms ease;
+}
+.info-modal-overlay.open .info-modal-box { transform: scale(1); }
+
+.info-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--t);
+}
+.info-modal-close:hover { background: var(--border); }
+
+.info-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.85rem;
+  padding-right: 2rem;
+}
+.info-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  list-style: none;
+  padding: 0;
+}
+.info-modal-list li { padding-left: 0; }
+.info-modal-list strong { color: var(--text); }
+
 /* ─── Config warning ────────────────────────────────────────── */
 .config-warning {
   font-size: 0.8rem; font-weight: 600; color: var(--wrong);
