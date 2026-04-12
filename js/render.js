@@ -876,35 +876,34 @@ const Render = (() => {
      * └────────────────────────────────────────────────┘
      */
     /*
-     * Flex column layout: top-bar + scrollable middle + footer.
-     * min-height:0 on the scroll child is the key — without it, a flex
-     * child with overflow:auto expands to fit content instead of scrolling.
+     * Fixed top + fixed bottom. Works because .tf-page has animation:none —
+     * the default fadeIn uses transform:translateY which would create a new
+     * containing block and break position:fixed. With no animation/transform
+     * on any ancestor, fixed children correctly stick to the viewport.
      */
     return `
-      <div class="screen screen-game">
-        <div class="tf-layout">
+      <div class="screen screen-game tf-page">
 
-          <div class="tf-top-bar">
-            <header class="game-header">
-              <button class="btn-back" id="btn-exit">✕ Salir</button>
-              <div class="progress-wrap">
-                <span class="progress-text">${answered} / ${total} completadas</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" style="width:${Math.round(answered/total*100)}%"></div>
-                </div>
+        <div class="tf-fixed-top">
+          <header class="game-header">
+            <button class="btn-back" id="btn-exit">✕ Salir</button>
+            <div class="progress-wrap">
+              <span class="progress-text">${answered} / ${total} completadas</span>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width:${Math.round(answered/total*100)}%"></div>
               </div>
-              <div class="game-score" style="font-size:0.75rem">${levelLabel}</div>
-            </header>
-            ${inputZoneHTML}
-          </div>
-
-          <div class="tf-table-scroll">
-            <div class="kana-grid cols-6">${cellsHTML}</div>
-          </div>
-
-          <div class="tf-footer">${footerContent}</div>
-
+            </div>
+            <div class="game-score" style="font-size:0.75rem">${levelLabel}</div>
+          </header>
+          ${inputZoneHTML}
         </div>
+
+        <div class="tf-table-body">
+          <div class="kana-grid cols-6">${cellsHTML}</div>
+        </div>
+
+        <div class="tf-fixed-bottom">${footerContent}</div>
+
       </div>`;
   }
 
@@ -919,31 +918,10 @@ const Render = (() => {
   function _gameTableFillEvents() {
     const g = State.game;
 
-    /**
-     * Scroll .tf-table-scroll so the active cell is vertically centered
-     * inside that container (not the page — the flex child is the scroll area).
-     */
-    function scrollToActive() {
-      const cell      = document.querySelector('.tf-active');
-      const container = document.querySelector('.tf-table-scroll');
-      if (!cell || !container) return;
-
-      const cRect = container.getBoundingClientRect();
-      const aRect = cell.getBoundingClientRect();
-
-      const target = container.scrollTop
-        + (aRect.top  - cRect.top)
-        - (cRect.height / 2)
-        + (aRect.height / 2);
-
-      container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
-    }
-
-    /** Re-render → center active cell → re-focus input. */
+    /** Re-render → re-focus input. User scrolls the table manually. */
     function advanceUI() {
       screen();
       setTimeout(() => {
-        scrollToActive();
         const ni = document.getElementById('tf-input');
         if (ni) { ni.focus(); ni.select(); }
       }, 60);
