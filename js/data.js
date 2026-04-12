@@ -302,7 +302,7 @@ const WORDS_HIRAGANA = [
   { word: 'もり',     romaji: 'mori',      emoji: '🌲',  meaning: 'bosque' },
   { word: 'そら',     romaji: 'sora',      emoji: '🌤️',  meaning: 'cielo' },
   { word: 'くも',     romaji: 'kumo',      emoji: '☁️',  meaning: 'nube' },
-  { word: 'たいよう', romaji: 'taiyou',    emoji: '☀️',  meaning: 'sol' },
+  { word: 'たいよう', romaji: 'taiyō',     alt: ['taiyou'],  emoji: '☀️',  meaning: 'sol' },
   { word: 'つき',     romaji: 'tsuki',     emoji: '🌙',  meaning: 'luna' },
   { word: 'ほし',     romaji: 'hoshi',     emoji: '⭐',  meaning: 'estrella' },
   { word: 'にじ',     romaji: 'niji',      emoji: '🌈',  meaning: 'arcoíris' },
@@ -322,7 +322,7 @@ const WORDS_HIRAGANA = [
   { word: 'あお',     romaji: 'ao',        emoji: '🔵',  meaning: 'azul' },
   { word: 'しろ',     romaji: 'shiro',     emoji: '⬜',  meaning: 'blanco' },
   { word: 'くろ',     romaji: 'kuro',      emoji: '⬛',  meaning: 'negro' },
-  { word: 'きいろ',   romaji: 'kiiro',     emoji: '🟡',  meaning: 'amarillo' },
+  { word: 'きいろ',   romaji: 'kīro',      alt: ['kiiro'],   emoji: '🟡',  meaning: 'amarillo' },
   { word: 'みどり',   romaji: 'midori',    emoji: '🟢',  meaning: 'verde' },
   // Comida y bebida
   { word: 'ごはん',   romaji: 'gohan',     emoji: '🍚',  meaning: 'arroz / comida' },
@@ -339,7 +339,7 @@ const WORDS_HIRAGANA = [
   { word: 'みかん',   romaji: 'mikan',     emoji: '🍊',  meaning: 'mandarina' },
   { word: 'いちご',   romaji: 'ichigo',    emoji: '🍓',  meaning: 'frutilla' },
   { word: 'もも',     romaji: 'momo',      emoji: '🍑',  meaning: 'durazno' },
-  { word: 'ぶどう',   romaji: 'budou',     emoji: '🍇',  meaning: 'uva' },
+  { word: 'ぶどう',   romaji: 'budō',      alt: ['budou'],   emoji: '🍇',  meaning: 'uva' },
   { word: 'すいか',   romaji: 'suika',     emoji: '🍉',  meaning: 'sandía' },
   { word: 'さけ',     romaji: 'sake',      emoji: '🍶',  meaning: 'sake' },
   // Cuerpo
@@ -490,7 +490,7 @@ const WORDS_KATAKANA = [
   { word: 'アニメ',         romaji: 'anime',       emoji: '📺',  meaning: 'anime' },
   { word: 'マンガ',         romaji: 'manga',       emoji: '📖',  meaning: 'manga' },
   { word: 'ドラマ',         romaji: 'dorama',      emoji: '🎭',  meaning: 'serie / drama' },
-  { word: 'ニュース',       romaji: 'nyuusu',      emoji: '📰',  meaning: 'noticias' },
+  { word: 'ニュース',       romaji: 'nyūsu',       alt: ['nyuusu'],     emoji: '📰',  meaning: 'noticias' },
   { word: 'チケット',       romaji: 'chiketto',    emoji: '🎫',  meaning: 'ticket' },
 ];
 
