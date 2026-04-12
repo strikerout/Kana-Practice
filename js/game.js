@@ -16,7 +16,8 @@ const Game = (() => {
   }
 
   function _norm(str) {
-    return str.trim().toLowerCase().replace(/\s+/g, '');
+    // NFC: normaliza ō (precompuesto) y o + combining macron a la misma forma
+    return str.trim().toLowerCase().normalize('NFC').replace(/\s+/g, '');
   }
 
   function _checkRomaji(typed, item) {

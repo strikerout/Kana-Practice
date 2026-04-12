@@ -778,6 +778,40 @@ ul, ol { list-style: none; }
   margin-left: 0.3rem;
 }
 
+/* ── Macron vowel helper bar ── */
+.macron-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  max-width: 280px;
+}
+.macron-label {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-right: 0.1rem;
+  flex-shrink: 0;
+}
+.macron-btn {
+  flex: 1;
+  padding: 0.3rem 0.2rem;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t);
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+.macron-btn:hover, .macron-btn:active {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+
 /* ── Words mode ── */
 .word-emoji {
   font-size: 3.5rem;

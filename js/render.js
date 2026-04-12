@@ -634,6 +634,18 @@ const Render = (() => {
     });
   }
 
+  // ── Macron vowel helper bar (ā ī ū ē ō) ─────────────────────
+  // Shown above the input in words JP→Romaji mode.
+  // mousedown:preventDefault keeps focus on the text input when tapped.
+  function _macronBarHTML() {
+    return `<div class="macron-bar" aria-label="Vocales largas">
+      <span class="macron-label">vocal larga →</span>
+      ${['ā','ī','ū','ē','ō'].map(v =>
+        `<button class="macron-btn" data-vowel="${v}" tabindex="-1">${v}</button>`
+      ).join('')}
+    </div>`;
+  }
+
   // ── Words JP→Romaji ──────────────────────────────────────────
   function _gameWordsHTML() {
     const g       = State.game;
@@ -660,6 +672,7 @@ const Render = (() => {
           <div class="kana-display ${fbClass}">${_kanaSpan(current.word, g.font)}</div>
           ${revealHTML}
           <div class="type-area">
+            ${!g.answered ? _macronBarHTML() : ''}
             <input id="type-input" class="type-input ${inpCls}"
               type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
               placeholder="romaji..."
@@ -674,6 +687,20 @@ const Render = (() => {
   function _gameWordsEvents() {
     const input  = document.getElementById('type-input');
     const submit = document.getElementById('btn-submit');
+
+    // Macron buttons: insert vowel at cursor without blurring the input
+    document.querySelectorAll('.macron-btn').forEach(btn => {
+      btn.addEventListener('mousedown', e => e.preventDefault()); // keep focus
+      btn.addEventListener('click', () => {
+        if (!input || State.game.answered) return;
+        const s = input.selectionStart, e2 = input.selectionEnd;
+        input.value = input.value.slice(0, s) + btn.dataset.vowel + input.value.slice(e2);
+        input.selectionStart = input.selectionEnd = s + 1;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.focus();
+      });
+    });
+
     function doSubmit() {
       if (State.game.answered) return;
       const typed = input ? input.value : '';
