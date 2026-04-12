@@ -877,7 +877,9 @@ const Render = (() => {
      */
     return `
       <div class="screen screen-game tf-page">
-        <div class="tf-sticky-top">
+
+        <!-- Fixed top: header + input zone always visible -->
+        <div class="tf-fixed-top">
           <header class="game-header">
             <button class="btn-back" id="btn-exit">✕ Salir</button>
             <div class="progress-wrap">
@@ -890,10 +892,15 @@ const Render = (() => {
           </header>
           ${inputZoneHTML}
         </div>
+
+        <!-- Scrollable table body (padded to clear fixed top/bottom) -->
         <div class="tf-table-body">
           <div class="kana-grid cols-6">${cellsHTML}</div>
         </div>
-        <div class="tf-footer">${footerContent}</div>
+
+        <!-- Fixed bottom: verify button / results always visible -->
+        <div class="tf-fixed-bottom">${footerContent}</div>
+
       </div>`;
   }
 
@@ -909,16 +916,29 @@ const Render = (() => {
     const g = State.game;
 
     /**
-     * Scroll the active cell into view (centered) within .tf-page,
-     * which is now the single scroll container. The sticky top and
-     * footer stay in place automatically.
+     * Scroll .tf-page so the active cell is centered in the visible area
+     * between the fixed top and fixed bottom elements.
      */
     function scrollToActive() {
-      const cell = document.querySelector('.tf-active');
-      if (cell) cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const cell    = document.querySelector('.tf-active');
+      const page    = document.querySelector('.tf-page');
+      const fixTop  = document.querySelector('.tf-fixed-top');
+      const fixBot  = document.querySelector('.tf-fixed-bottom');
+      if (!cell || !page) return;
+
+      const topH    = fixTop ? fixTop.offsetHeight : 0;
+      const botH    = fixBot ? fixBot.offsetHeight : 0;
+      const viewH   = window.innerHeight;
+      // Target: vertical center of the visible strip between fixed elements
+      const visMid  = topH + (viewH - topH - botH) / 2;
+
+      const cellRect = cell.getBoundingClientRect();
+      const cellMid  = cellRect.top + cellRect.height / 2;
+
+      page.scrollBy({ top: cellMid - visMid, behavior: 'smooth' });
     }
 
-    /** Re-render → scroll active to center → re-focus input. */
+    /** Re-render → center active cell → re-focus input. */
     function advanceUI() {
       screen();
       setTimeout(() => {

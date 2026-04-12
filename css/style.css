@@ -1065,22 +1065,22 @@ ul, ol { list-style: none; }
    COMPLETA LA TABLA
    ═══════════════════════════════════════════════════════════════ */
 /*
- * .tf-page is the single scroll container for Completa la tabla.
- * Sticky children work relative to it, eliminating nested-scroll issues.
+ * .tf-page is the scroll container for Completa la tabla.
+ * Fixed children (.tf-fixed-top / .tf-fixed-bottom) are fixed to the
+ * VIEWPORT so they never move. The table body scrolls independently.
  */
 .tf-page {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* flex:1 + display:flex are inherited from .screen — keep them */
-  flex-direction: column; /* ensure column layout */
 }
 
-/* Sticky top: header + input zone stick together */
-.tf-sticky-top {
-  position: sticky;
-  top: 0;
+/* Fixed top bar: game header + input zone — always visible */
+.tf-fixed-top {
+  position: fixed;
+  top: 0; left: 0; right: 0;
   z-index: 20;
   background: var(--bg);
+  box-shadow: var(--shadow-sm);
 }
 
 .tf-input-zone {
@@ -1094,13 +1094,19 @@ ul, ol { list-style: none; }
 }
 .tf-input-zone .type-input { flex: 1; text-align: left; padding: 0.5rem 0.75rem; }
 
-/* Table lives in natural document flow — no height constraint, scrolls with page */
-.tf-table-body { padding: 0.5rem var(--gap) 0.25rem; flex: 1; }
+/*
+ * Table body: padded so content isn't hidden behind fixed elements.
+ * 8rem top ≈ game-header (3.5rem) + input zone (3.5rem) + gap
+ * 5rem bottom ≈ fixed footer height + safe area
+ */
+.tf-table-body {
+  padding: 8rem var(--gap) 5rem;
+}
 
-/* Sticky footer: verify button / results always visible at bottom */
-.tf-footer {
-  position: sticky;
-  bottom: 0;
+/* Fixed bottom bar: verify button / results — always visible */
+.tf-fixed-bottom {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
   z-index: 19;
   display: flex; flex-direction: column; gap: 0.4rem;
   padding: 0.5rem var(--gap) env(safe-area-inset-bottom, 0.75rem);
