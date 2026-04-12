@@ -299,8 +299,8 @@ const Render = (() => {
     const tab    = State.tableTab;
     const lookup = getLookup(alphabet);
     const label  = alphabet === 'hiragana' ? 'Hiragana' : 'Katakana';
-    const tabs   = ['gojuon', 'dakuten', 'youon', 'guia'];
-    const tl     = { gojuon: 'Gojūon', dakuten: 'Dakuten', youon: 'Yōon', guia: '📖 Guía' };
+    const tabs   = ['gojuon', 'dakuten', 'youon'];
+    const tl     = { gojuon: 'Gojūon', dakuten: 'Dakuten', youon: 'Yōon' };
     const tabsHTML = tabs.map(t =>
       `<button class="tab-btn ${t === tab ? 'active' : ''}" data-tab="${t}">${tl[t]}</button>`
     ).join('');
