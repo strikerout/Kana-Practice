@@ -9,7 +9,7 @@
 
 - **Two alphabets** — Hiragana (あ) and Katakana (ア), fully switchable
 - **Six game modes** — multiple choice, write, match, words, complete the table, and random mix
-- **201 vocabulary words** with emoji and Spanish meanings, shuffled every session
+- **306 vocabulary words** with emoji and Spanish meanings, shuffled every session
 - **Macron notation for long vowels** — ā ī ū ē ō, with a built-in helper bar so you can type them on any device
 - **📝 Repaso** — theory review screen with collapsible sections explaining every character type
 - **Reference guide** — interactive table guide with examples for Gojūon, Dakuten, Yōon, long vowels, and sokuon
@@ -110,7 +110,7 @@ The **📖 Guía** tab (inside Ver Tabla) shows all character types with visual 
 | Dakuten | 20 | 20 |
 | Handakuten | 5 | 5 |
 | Yōon | 33 | 33 |
-| **Words** | **108** | **93** |
+| **Words** | **174** | **132** |
 
 ---
 
