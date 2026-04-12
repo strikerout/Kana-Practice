@@ -292,37 +292,49 @@ ul, ol { list-style: none; }
   background: var(--bg);
 }
 
-/* Table header clips its own overflow so the tabs never widen the page */
-.screen-table .screen-header { overflow: hidden; }
+/* Table screen: two-row sticky header */
+.table-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.table-header-top {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 0.75rem var(--gap) 0.5rem;
+}
+.table-header-top h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex: 1;
+}
 
+/* Tabs row: all tabs visible, equal width, full bleed */
 .table-tabs {
   display: flex;
-  gap: 0.25rem;
-  margin-left: auto;
-  /* Horizontal scroll when tabs don't fit — no visible scrollbar */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 1px; /* avoid clipping focus rings */
+  padding: 0 var(--gap) 0;
+  border-top: 1px solid var(--border);
 }
-.table-tabs::-webkit-scrollbar { display: none; }
-
 .tab-btn {
-  flex-shrink: 0; /* never compress below natural width */
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--r-full);
-  font-size: 0.8rem;
+  flex: 1;
+  padding: 0.55rem 0.25rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
   background: transparent;
-  transition: background var(--t), color var(--t);
+  border-bottom: 2.5px solid transparent;
+  transition: color var(--t), border-color var(--t);
   white-space: nowrap;
+  text-align: center;
 }
 .tab-btn.active {
-  background: var(--primary);
-  color: #fff;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
 }
-.tab-btn:not(.active):hover { background: var(--surface-alt); }
+.tab-btn:not(.active):hover { color: var(--text); }
 
 .table-body {
   padding: var(--gap);

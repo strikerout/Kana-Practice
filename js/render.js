@@ -306,9 +306,11 @@ const Render = (() => {
     ).join('');
     return `
       <div class="screen screen-table">
-        <header class="screen-header">
-          <button class="btn-back" id="btn-back">← Volver</button>
-          <h2>${label}</h2>
+        <header class="table-header">
+          <div class="table-header-top">
+            <button class="btn-back" id="btn-back">← Volver</button>
+            <h2>${label}</h2>
+          </div>
           <div class="table-tabs">${tabsHTML}</div>
         </header>
         <div class="table-body">${_tableContentHTML(tab, lookup)}</div>
