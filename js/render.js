@@ -570,22 +570,6 @@ const Render = (() => {
           <button class="btn btn-primary" id="btn-start" ${startDisabled ? 'disabled' : ''}>▶ Empezar</button>
         </div>
 
-        <!-- Popup explicación de modos -->
-        <div class="info-modal-overlay" id="modes-modal">
-          <div class="info-modal-box">
-            <button class="info-modal-close" id="modes-modal-close">✕</button>
-            <h3 class="info-modal-title">Modos de juego</h3>
-            <ul class="info-modal-list">
-              <li><strong>Opción múltiple</strong> — Ves un carácter kana y elegís entre 4 opciones de romaji.</li>
-              <li><strong>Escribir</strong> — Ves un carácter kana y escribís el romaji sin ayuda.</li>
-              <li><strong>Emparejar</strong> — Dos columnas: caracteres a la izquierda, romaji a la derecha. Tocás uno de cada lado para hacer el par.</li>
-              <li><strong>Palabras</strong> — Ves una palabra completa con emoji de pista. Podés elegir dirección: Japonés→Romaji o Romaji→Japonés con teclado kana en pantalla.</li>
-              <li><strong>📋 Completa tabla</strong> — Ves toda la tabla del silabario y completás el romaji de cada carácter. Tiene 3 niveles de dificultad.</li>
-              <li><strong>🎲 Random</strong> — Cada pregunta es una sorpresa: puede salir cualquier modo o palabras del vocabulario mezcladas.</li>
-            </ul>
-          </div>
-        </div>
-
       </div>`;
   }
 
