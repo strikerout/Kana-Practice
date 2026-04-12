@@ -1168,6 +1168,9 @@ ul, ol { list-style: none; }
 .corner-btn:hover  { transform: scale(1.1); box-shadow: var(--shadow-lg); }
 .corner-btn:active { transform: scale(0.95); }
 
+/* Ocultar watermark en modo tabla (tf-fixed-bottom ya cubre ese espacio) */
+body:has(.tf-page) .site-credit { display: none; }
+
 /* ─── Site credit watermark ─────────────────────────────────── */
 .site-credit {
   display: flex;
