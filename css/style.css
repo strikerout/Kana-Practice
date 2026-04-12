@@ -991,6 +991,177 @@ ul, ol { list-style: none; }
   overscroll-behavior-x: contain;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   REPASO SCREEN
+   ═══════════════════════════════════════════════════════════════ */
+.screen-repaso { background: var(--bg); }
+
+.repaso-body {
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+  padding-bottom: 3rem;
+}
+
+/* Accordion item */
+.repaso-item {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--t);
+}
+.repaso-item[open] { box-shadow: var(--shadow-md); }
+
+.repaso-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.9rem var(--gap);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  list-style: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--t);
+}
+.repaso-title:hover { background: var(--surface-alt); }
+.repaso-title::-webkit-details-marker { display: none; }
+.repaso-title::marker { display: none; }
+
+.repaso-icon {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.1rem;
+  min-width: 1.8rem;
+  text-align: center;
+}
+.repaso-chevron {
+  margin-left: auto;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: transform 220ms ease;
+  line-height: 1;
+}
+.repaso-item[open] .repaso-chevron { transform: rotate(90deg); }
+
+/* Content inside each accordion */
+.repaso-content {
+  padding: 0.75rem var(--gap) 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+.repaso-content p { margin: 0; color: var(--text-muted); }
+.repaso-content strong { color: var(--text); }
+
+.repaso-subsection { display: flex; flex-direction: column; gap: 0.4rem; }
+.repaso-subsection h4 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin: 0;
+}
+
+.repaso-examples { display: flex; flex-direction: column; gap: 0.3rem; }
+.repaso-row-ex {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.2rem 0;
+}
+
+.repaso-transform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+.repaso-transform-grid > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: var(--surface-alt);
+  border-radius: var(--r-sm);
+  padding: 0.3rem 0.5rem;
+}
+
+/* Kana display inside repaso */
+.rex-kana {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.1rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+.rex-kana-sm {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.rex-rom {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.repaso-warning {
+  background: var(--wrong-bg);
+  color: var(--wrong);
+  border-radius: var(--r-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1.6;
+}
+
+.repaso-tip {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--r-sm);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Long vowel table */
+.repaso-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.repaso-table th {
+  background: var(--surface-alt);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.repaso-table td {
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.repaso-table tr:last-child td { border-bottom: none; }
+.repaso-table td:first-child { font-weight: 700; color: var(--primary); }
+
+/* Home actions with 3 buttons */
+.home-actions.three { max-width: 320px; }
+
 /* ─── Config warning ────────────────────────────────────────── */
 .config-warning {
   font-size: 0.8rem; font-weight: 600; color: var(--wrong);

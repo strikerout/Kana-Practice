@@ -9,6 +9,7 @@ const Render = (() => {
     const app = document.getElementById('app');
     switch (State.screen) {
       case 'home':   app.innerHTML = _homeHTML();   _homeEvents();   break;
+      case 'repaso': app.innerHTML = _repasoHTML(); _repasoEvents(); break;
       case 'table':  app.innerHTML = _tableHTML();  _tableEvents();  break;
       case 'config': app.innerHTML = _configHTML(); _configEvents(); break;
       case 'game':   app.innerHTML = _gameHTML();   _gameEvents();   break;
@@ -74,6 +75,7 @@ const Render = (() => {
         </div>
         <div class="home-actions">
           <button class="btn btn-secondary" id="btn-table">📋 Ver Tabla</button>
+          <button class="btn btn-secondary" id="btn-repaso">📝 Repaso</button>
           <button class="btn btn-primary"   id="btn-config">🎮 Practicar</button>
         </div>
       </div>`;
@@ -86,8 +88,166 @@ const Render = (() => {
     document.getElementById('btn-table').addEventListener('click', () => {
       State.setScreen('table'); screen();
     });
+    document.getElementById('btn-repaso').addEventListener('click', () => {
+      State.setScreen('repaso'); screen();
+    });
     document.getElementById('btn-config').addEventListener('click', () => {
       State.setScreen('config'); screen();
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // REPASO  — accordion with theory sections
+  // ══════════════════════════════════════════════════════════════
+  function _repasoHTML() {
+    return `
+      <div class="screen screen-repaso">
+        <header class="screen-header">
+          <button class="btn-back" id="btn-back">← Volver</button>
+          <h2>📝 Repaso</h2>
+        </header>
+        <div class="repaso-body">
+
+          <details class="repaso-item">
+            <summary class="repaso-title">
+              <span class="repaso-icon">🔤</span>
+              <span>Gojūon (五十音) — Puros</span>
+              <span class="repaso-chevron">›</span>
+            </summary>
+            <div class="repaso-content">
+              <p>Los <strong>46 caracteres base</strong> del japonés. Son "la tabla" que todo estudiante aprende primero. No llevan ninguna marca adicional.</p>
+              <p>Se organizan en <strong>filas por consonante</strong> y <strong>columnas por vocal</strong> (a · i · u · e · o):</p>
+              <div class="repaso-examples">
+                <div class="repaso-row-ex"><span class="rex-kana">あかさたな</span><span class="rex-rom">a · ka · sa · ta · na</span></div>
+                <div class="repaso-row-ex"><span class="rex-kana">はまやらわ</span><span class="rex-rom">ha · ma · ya · ra · wa</span></div>
+              </div>
+              <p class="repaso-tip">💡 Aprendelos fila por fila, no columna por columna.</p>
+            </div>
+          </details>
+
+          <details class="repaso-item">
+            <summary class="repaso-title">
+              <span class="repaso-icon">゛゜</span>
+              <span>Dakuten &amp; Handakuten — Impuros</span>
+              <span class="repaso-chevron">›</span>
+            </summary>
+            <div class="repaso-content">
+              <div class="repaso-subsection">
+                <h4>El tenten ゛— Dakuten (濁点)</h4>
+                <p><strong>Tenten</strong> (てんてん) significa "puntito puntito" — se llama así por su forma. El nombre técnico es <strong>dakuten</strong> (濁点, "marca de sonorización").</p>
+                <p>Convierte sonidos <em>sordos</em> en <em>sonoros</em>:</p>
+                <div class="repaso-transform-grid">
+                  <div><span class="rex-kana">か → が</span> <span class="rex-rom">k → g</span></div>
+                  <div><span class="rex-kana">さ → ざ</span> <span class="rex-rom">s → z</span></div>
+                  <div><span class="rex-kana">た → だ</span> <span class="rex-rom">t → d</span></div>
+                  <div><span class="rex-kana">は → ば</span> <span class="rex-rom">h → b</span></div>
+                </div>
+              </div>
+              <div class="repaso-subsection">
+                <h4>El maru ゜— Handakuten (半濁点)</h4>
+                <p><strong>Maru</strong> (まる) significa "círculo". El nombre técnico es <strong>handakuten</strong> (半濁点, "marca semi-sonora").</p>
+                <p>Solo funciona en la fila H, convirtiéndola en P:</p>
+                <div class="repaso-transform-grid">
+                  <div><span class="rex-kana">は → ぱ</span> <span class="rex-rom">ha → pa</span></div>
+                  <div><span class="rex-kana">ひ → ぴ</span> <span class="rex-rom">hi → pi</span></div>
+                  <div><span class="rex-kana">ふ → ぷ</span> <span class="rex-rom">fu → pu</span></div>
+                  <div><span class="rex-kana">へ → ぺ</span> <span class="rex-rom">he → pe</span></div>
+                  <div><span class="rex-kana">ほ → ぽ</span> <span class="rex-rom">ho → po</span></div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details class="repaso-item">
+            <summary class="repaso-title">
+              <span class="repaso-icon">きゃ</span>
+              <span>Yōon (拗音) — Compuestos</span>
+              <span class="repaso-chevron">›</span>
+            </summary>
+            <div class="repaso-content">
+              <p>Se forman combinando un carácter de la <strong>fila い</strong> con una versión <strong>pequeña</strong> de ya / yu / yo.</p>
+              <div class="repaso-examples">
+                <div class="repaso-row-ex"><span class="rex-kana">き + ゃ = きゃ</span><span class="rex-rom">ki + ya = kya</span></div>
+                <div class="repaso-row-ex"><span class="rex-kana">し + ゅ = しゅ</span><span class="rex-rom">shi + yu = shu</span></div>
+                <div class="repaso-row-ex"><span class="rex-kana">ち + ょ = ちょ</span><span class="rex-rom">chi + yo = cho</span></div>
+                <div class="repaso-row-ex"><span class="rex-kana">ぎ + ゃ = ぎゃ</span><span class="rex-rom">gi + ya = gya</span></div>
+                <div class="repaso-row-ex"><span class="rex-kana">じ + ゅ = じゅ</span><span class="rex-rom">ji + yu = ju</span></div>
+              </div>
+              <div class="repaso-warning">
+                ⚠️ El tamaño importa:<br>
+                <span class="rex-kana">ゃゅょ</span> (pequeño, compuesto) ≠ <span class="rex-kana">やゆよ</span> (normal, sílaba propia)
+              </div>
+              <p class="repaso-tip">💡 El carácter pequeño no es una sílaba independiente, es un modificador del anterior.</p>
+            </div>
+          </details>
+
+          <details class="repaso-item">
+            <summary class="repaso-title">
+              <span class="repaso-icon">ō</span>
+              <span>Vocales largas (長音) — El macron</span>
+              <span class="repaso-chevron">›</span>
+            </summary>
+            <div class="repaso-content">
+              <p>El <strong>macron</strong> (la raya plana: ā ī ū ē ō) indica que esa vocal se pronuncia <strong>el doble de tiempo</strong>. No es decorativo — cambia el significado.</p>
+              <div class="repaso-warning">
+                おばさん = obasan (tía) · おばあさん = obāsan (abuela)
+              </div>
+
+              <div class="repaso-subsection">
+                <h4>En katakana: el chōonpu ー</h4>
+                <p>Se usa el signo <strong>ー</strong>, llamado <strong>chōonpu</strong> (長音符, "símbolo de vocal larga"). Simplemente extiende la vocal anterior.</p>
+                <div class="repaso-examples">
+                  <div class="repaso-row-ex"><span class="rex-kana">コ + ー = コー</span><span class="rex-rom">ko + ー = kō</span></div>
+                  <div class="repaso-row-ex"><span class="rex-kana">ラ + ー = ラー</span><span class="rex-rom">ra + ー = rā</span></div>
+                  <div class="repaso-row-ex"><span class="rex-kana">ビ + ー = ビー</span><span class="rex-rom">bi + ー = bī</span></div>
+                </div>
+              </div>
+
+              <div class="repaso-subsection">
+                <h4>En hiragana: se agrega la vocal</h4>
+                <p>No hay un símbolo especial. En cambio, se escribe la vocal que extiende el sonido:</p>
+                <table class="repaso-table">
+                  <thead><tr><th>Vocal</th><th>Patrón</th><th>Macron</th><th>Ejemplo</th></tr></thead>
+                  <tbody>
+                    <tr><td>a</td><td>+ あ</td><td>ā</td><td class="rex-kana-sm">おかあさん → okāsan</td></tr>
+                    <tr><td>i</td><td>+ い</td><td>ī</td><td class="rex-kana-sm">きいろ → kīro</td></tr>
+                    <tr><td>u</td><td>+ う</td><td>ū</td><td class="rex-kana-sm">ゆうき → yūki</td></tr>
+                    <tr><td>e</td><td>+ い</td><td>ē</td><td class="rex-kana-sm">とけい → tokē</td></tr>
+                    <tr><td>o</td><td>+ う</td><td>ō</td><td class="rex-kana-sm">がっこう → gakkō</td></tr>
+                    <tr><td>o</td><td>+ お</td><td>ō</td><td class="rex-kana-sm">おおきい → ōkī</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="repaso-subsection">
+                <h4>La regla ou → ō</h4>
+                <p>おう <strong>siempre</strong> se pronuncia ō en japonés moderno. Nunca como dos vocales separadas "o-u". Cuando veas "ou" en romanizaciones viejas, es un ō.</p>
+                <div class="repaso-examples">
+                  <div class="repaso-row-ex"><span class="rex-kana">がっこう</span><span class="rex-rom">gakkō (no "gakkou")</span></div>
+                  <div class="repaso-row-ex"><span class="rex-kana">ありがとう</span><span class="rex-rom">arigatō (no "arigatou")</span></div>
+                </div>
+              </div>
+
+              <div class="repaso-subsection">
+                <h4>La regla ei → ē</h4>
+                <p>えい en japonés moderno casi siempre se pronuncia como una ē larga. En la romanización Hepburn estándar puede escribirse "ei" o "ē". En esta app usamos macron.</p>
+                <div class="repaso-examples">
+                  <div class="repaso-row-ex"><span class="rex-kana">とけい</span><span class="rex-rom">tokē (reloj)</span></div>
+                  <div class="repaso-row-ex"><span class="rex-kana">せんせい</span><span class="rex-rom">sensē (maestro)</span></div>
+                </div>
+              </div>
+
+              <p class="repaso-tip">💡 La doble vocal (koohii, gakkou) también se acepta como respuesta correcta en esta app.</p>
+            </div>
+          </details>
+
+        </div>
+      </div>`;
+  }
+
+  function _repasoEvents() {
+    document.getElementById('btn-back').addEventListener('click', () => {
+      State.setScreen('home'); screen();
     });
   }
 
