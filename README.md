@@ -8,26 +8,14 @@
 ## ✨ Features
 
 - **Two alphabets** — Hiragana (あ) and Katakana (ア), fully switchable
-- **Three character sets**
-  - Gojūon (五十音) — the 46 base characters
-  - Dakuten / Handakuten — voiced and semi-voiced (が、ぱ…)
-  - Yōon — compound sounds (きゃ、しゅ、ちょ…)
-- **Five game modes**
-  - Multiple choice — pick the correct romaji from 4 options
-  - Write — type the romaji from memory
-  - Match — pair characters with their romaji in two columns
-  - Words — read full words and type their romaji (with emoji hint + Spanish meaning revealed after answering)
-  - 🎲 Random — wild mix of all the above, including words
-- **193 vocabulary words** with emoji and Spanish meanings
-  - 103 Hiragana words (animals, nature, seasons, colors, food, body parts, objects, people…)
-  - 90 Katakana words (loanwords: drinks, food, tech, transport, sports, music, clothing, animals…)
-  - Shuffled randomly every session
-- **Font rotation** — characters appear in up to 5 different Japanese typefaces so you learn to recognize them beyond a single style
-- **Configurable sessions** — choose how many questions per round (10 / 20 / 30 / all)
-- **Sound effects** — chime on correct, thud on wrong (Web Audio API, no audio files needed)
-- **Dark mode** — clean dark theme, toggle anytime
-- **Fully responsive** — works great on mobile and desktop
-- **No backend** — open `index.html` directly in any browser, no server needed
+- **Six game modes** — multiple choice, write, match, words, complete the table, and random mix
+- **193 vocabulary words** with emoji and Spanish meanings, shuffled every session
+- **Macron notation for long vowels** — ā ī ū ē ō, with a built-in helper bar so you can type them on any device
+- **Reference guide** — built-in explanation of Gojūon, Dakuten, Yōon, and long vowels with examples
+- **Font rotation** — characters appear in up to 5 different Japanese typefaces per session
+- **Sound effects** — chime on correct, thud on wrong (Web Audio API, no files needed)
+- **Dark mode** — toggle anytime, preference saved
+- **Fully responsive** — optimized for mobile and desktop
 
 ---
 
@@ -35,11 +23,81 @@
 
 | Mode | Description |
 |------|-------------|
-| **Opción múltiple** | See a character, pick from 4 romaji options |
+| **Opción múltiple** | See a character, choose from 4 romaji options |
 | **Escribir** | See a character, type the romaji yourself |
-| **Emparejar** | Match columns of characters to their romaji |
-| **Palabras** | See a full word with emoji hint, type its romaji |
-| **🎲 Random** | Each question is a surprise — any mode, any type |
+| **Emparejar** | Match two columns — characters on the left, romaji on the right |
+| **Palabras** | Full word with emoji hint → type its romaji (JP→Rom or Rom→JP with on-screen kana keyboard) |
+| **📋 Completa la tabla** | Fill in the romaji for the entire kana table — 3 difficulty levels |
+| **🎲 Random** | Wild mix of all modes and word questions in one session |
+
+---
+
+## ⚙️ Configuration
+
+Every session is configurable:
+
+| Option | Choices |
+|--------|---------|
+| **Alphabet** | Hiragana / Katakana |
+| **Character sets** | Gojūon · Dakuten+Handakuten · Yōon · Vocales largas |
+| **Questions per session** | 10 / 20 / 30 / All |
+| **Word direction** | JP → Romaji / Romaji → JP |
+| **Font style** | Base font / Random (rotates per question) |
+| **Table fill level** | Level 1: Gojūon · Level 2: +Impuros · Level 3: +Yōon |
+
+Character set selection also filters the word pool — enabling *vocales largas* guarantees a proportion of words with long vowels (ー, おう…) appear in the session.
+
+All preferences are saved in localStorage.
+
+---
+
+## 📋 Completa la Tabla
+
+A dedicated mode for memorizing the full kana table:
+
+- Three levels of difficulty
+- Type the romaji for each character — the table is all visible at once
+- Active cell is highlighted; scroll the table while the input bar stays pinned at the top
+- Auto-verifies when the last cell is filled
+- Results show which cells were correct (green) and which need review (red with the correct answer)
+
+---
+
+## 🔤 Long Vowel Support
+
+Long vowels in Japanese are written with macrons in standard Hepburn romanization:
+
+| Katakana | Hiragana | Romaji |
+|----------|----------|--------|
+| コーヒー | — | kōhī |
+| ラーメン | — | rāmen |
+| — | がっこう | gakkō |
+| — | ちょう | chō |
+
+When typing long vowel answers, a **[ ā ][ ī ][ ū ][ ē ][ ō ]** helper bar appears above the input. Tapping a button inserts the macron vowel at the cursor — no need to dig through special character menus. The doubled-vowel spelling (koohii, raamen…) is also accepted as a correct answer.
+
+---
+
+## 📖 Built-in Guide
+
+The **📖 Guía** tab (inside Ver Tabla) explains all character types with examples:
+
+- **Gojūon** — the 46 base characters
+- **Dakuten / Handakuten** — how ゛ and ゜ change a sound (か→が, は→ぱ)
+- **Yōon** — compound sounds and why き + ゃ ≠ き + や
+- **Vocales largas** — ー in katakana, vowel extension in hiragana, romaji equivalences
+
+---
+
+## 🌸 Character Coverage
+
+| Set | Hiragana | Katakana |
+|-----|----------|----------|
+| Gojūon | 46 | 46 |
+| Dakuten | 20 | 20 |
+| Handakuten | 5 | 5 |
+| Yōon | 33 | 33 |
+| **Words** | **103** | **90** |
 
 ---
 
@@ -61,11 +119,11 @@ Or visit directly: **[strikerout.github.io/Kana-Practice](https://strikerout.git
 
 ```
 Kana-Practice/
-├── index.html          # Entry point — structure & script imports
+├── index.html          # Entry point — structure, imports, persistent controls
 ├── css/
 │   └── style.css       # All styles: variables, layout, components, dark mode
 ├── js/
-│   ├── data.js         # All kana data, word lists, font pool, table layouts
+│   ├── data.js         # Kana data, word lists, keyboard layouts, helpers
 │   ├── state.js        # App state + localStorage persistence
 │   ├── game.js         # Game logic: queues, answer checking, scoring
 │   ├── render.js       # DOM rendering and event wiring for every screen
@@ -82,20 +140,8 @@ Each file has a single, clear responsibility. No frameworks, no build step.
 
 - **Vanilla HTML / CSS / JavaScript** — zero dependencies
 - **Google Fonts** — Noto Sans JP, Noto Serif JP, M PLUS Rounded 1c, Sawarabi Mincho, Zen Kurenaido
-- **localStorage** — persists your preferences (alphabet, character sets, game mode, session length, font style, dark mode, sound on/off)
+- **localStorage** — saves alphabet, character sets, game mode, session length, font style, word direction, dark mode, sound on/off
 - **Web Audio API** — procedural sound effects, no audio files required
-
----
-
-## 🌸 Character Coverage
-
-| Set | Hiragana | Katakana |
-|-----|----------|----------|
-| Gojūon | 46 | 46 |
-| Dakuten | 20 | 20 |
-| Handakuten | 5 | 5 |
-| Yōon | 33 | 33 |
-| **Words** | **103** | **90** |
 
 ---
 
