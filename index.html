@@ -74,6 +74,29 @@
           const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
           document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
         });
+
+        /*
+         * iOS fixed-element compensation for table-fill mode.
+         *
+         * Problem: on iOS, when the keyboard is open and the user scrolls,
+         * the browser moves the "layout viewport" — position:fixed elements
+         * scroll with it instead of staying put.
+         *
+         * Fix: visualViewport.offsetTop tells us how far the visible area
+         * has drifted from the layout viewport top. We counter-translate the
+         * fixed bars by that same amount so they stay visually pinned.
+         */
+        function syncFixedBars() {
+          const ft = document.querySelector('.tf-fixed-top');
+          const fb = document.querySelector('.tf-fixed-bottom');
+          if (!ft && !fb) return;                   // not in table-fill mode
+          const offset = window.visualViewport.offsetTop;
+          const t = offset ? `translateY(${offset}px)` : '';
+          if (ft) ft.style.transform = t;
+          if (fb) fb.style.transform = t;
+        }
+        window.visualViewport.addEventListener('scroll', syncFixedBars);
+        window.visualViewport.addEventListener('resize', syncFixedBars);
       }
 
       // ── Sound toggle ──────────────────────────────────────────
