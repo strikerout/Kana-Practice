@@ -1064,23 +1064,22 @@ ul, ol { list-style: none; }
 /* ═══════════════════════════════════════════════════════════════
    COMPLETA LA TABLA
    ═══════════════════════════════════════════════════════════════ */
-/*
- * .tf-page is the scroll container for Completa la tabla.
- * Fixed children (.tf-fixed-top / .tf-fixed-bottom) are fixed to the
- * VIEWPORT so they never move. The table body scrolls independently.
- */
-.tf-page {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+/* ═══════════════════════════════════════════════════════════════
+   COMPLETA LA TABLA — flex layout
+   top-bar (flex-shrink:0) + scroll-middle (flex:1, min-height:0) + footer
+   min-height:0 is the critical property that allows the flex child
+   with overflow:auto to actually scroll instead of expanding.
+   ═══════════════════════════════════════════════════════════════ */
+.tf-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;  /* prevent flex container from growing past viewport */
 }
 
-/* Fixed top bar: game header + input zone — always visible */
-.tf-fixed-top {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 20;
+.tf-top-bar {
+  flex-shrink: 0;
   background: var(--bg);
-  box-shadow: var(--shadow-sm);
 }
 
 .tf-input-zone {
@@ -1094,20 +1093,19 @@ ul, ol { list-style: none; }
 }
 .tf-input-zone .type-input { flex: 1; text-align: left; padding: 0.5rem 0.75rem; }
 
-/*
- * Table body: padded so content isn't hidden behind fixed elements.
- * 8rem top ≈ game-header (3.5rem) + input zone (3.5rem) + gap
- * 5rem bottom ≈ fixed footer height + safe area
- */
-.tf-table-body {
-  padding: 8rem var(--gap) 5rem;
+/* Scrollable table — min-height:0 lets it shrink and actually scroll */
+.tf-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0.4rem var(--gap);
 }
 
-/* Fixed bottom bar: verify button / results — always visible */
-.tf-fixed-bottom {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  z-index: 19;
+/* Footer — always visible, never scrolls */
+.tf-footer {
+  flex-shrink: 0;
   display: flex; flex-direction: column; gap: 0.4rem;
   padding: 0.5rem var(--gap) env(safe-area-inset-bottom, 0.75rem);
   background: var(--bg);
