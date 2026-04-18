@@ -192,6 +192,8 @@ const Render = (() => {
   // DICCIONARIO
   // ══════════════════════════════════════════════════════════════
   function _dictHTML() {
+    // Grab data immediately if the deferred script already executed
+    if (!_dictData && window.KANA_DICT) _dictData = window.KANA_DICT;
     const loading = !_dictData;
     const MAX     = 200;
     const filtered = _filterDict();
