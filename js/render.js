@@ -23,7 +23,10 @@ const Render = (() => {
    */
   function _cleanSpanish(s) {
     let clean = s.split(';')[0].trim();
-    clean = clean.replace(/\s*\([^)]*\)/g, '').trim();
+    clean = clean.replace(/\s*\([^)]*\)/g, ''); // remove (balanced parens)
+    clean = clean.replace(/[()[\]{}]/g, '');     // remove any stray brackets
+    clean = clean.replace(/\.{2,}/g, '');         // remove ellipsis ...
+    clean = clean.replace(/\s+/g, ' ').trim();
     return clean || s.split(';')[0].trim();
   }
 
