@@ -27,6 +27,7 @@ const Render = (() => {
     clean = clean.replace(/[()[\]{}]/g, '');     // remove any stray brackets
     clean = clean.replace(/\.{2,}/g, '');         // remove ellipsis ...
     clean = clean.replace(/\s+/g, ' ').trim();
+    clean = clean.charAt(0).toUpperCase() + clean.slice(1);
     return clean || s.split(';')[0].trim();
   }
 
