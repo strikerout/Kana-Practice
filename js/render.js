@@ -135,11 +135,12 @@ const Render = (() => {
     const hiA = alphabet === 'hiragana' ? 'active' : '';
     const kaA = alphabet === 'katakana' ? 'active' : '';
 
-    const w    = _wordOfDay();
+    const w      = _wordOfDay();
     const isHira = WORDS_HIRAGANA.includes(w);
-    const badge  = isHira ? 'Hiragana' : 'Katakana';
+    const mainKana = w.word ?? w.h ?? '';
+    const altKana  = isHira ? hiraToKata(mainKana) : kataToHira(mainKana);
+    const badge    = isHira ? 'Hiragana' : 'Katakana';
 
-    // Format today's date nicely
     const today = new Date().toLocaleDateString('es-AR', {
       weekday: 'long', day: 'numeric', month: 'long',
     });
@@ -154,16 +155,19 @@ const Render = (() => {
 
         <!-- Word of the Day -->
         <div class="wod-card">
-          <p class="wod-eyebrow">📅 Palabra del día &nbsp;·&nbsp; ${todayLabel}</p>
+          <div class="wod-eyebrow">
+            <span>📅 Palabra del día · ${todayLabel}</span>
+            <span class="wod-badge">${badge}</span>
+          </div>
           <div class="wod-body">
             <span class="wod-emoji">${w.emoji}</span>
             <div class="wod-text">
-              <span class="wod-kana" style="font-family:'Noto Sans JP',sans-serif">${w.word ?? w.h ?? ''}</span>
+              <span class="wod-kana" style="font-family:'Noto Sans JP',sans-serif">${mainKana}</span>
+              <span class="wod-alt-kana" style="font-family:'Noto Sans JP',sans-serif">${altKana}</span>
               <span class="wod-romaji">${w.romaji ?? w.r ?? ''}</span>
               <span class="wod-meaning">${w.meaning ?? w.s ?? ''}</span>
             </div>
           </div>
-          <span class="wod-badge">${badge}</span>
         </div>
 
         <div class="alphabet-selector">

@@ -231,9 +231,13 @@ ul, ol { list-style: none; }
   border: 1.5px solid var(--border);
 }
 .wod-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -249,13 +253,12 @@ ul, ol { list-style: none; }
   gap: 0.05rem;
   min-width: 0;
 }
-.wod-kana   { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-.wod-romaji { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.04em; }
-.wod-meaning { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+.wod-kana     { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.wod-alt-kana { font-size: 0.85rem; color: var(--text-muted); line-height: 1.2; }
+.wod-romaji   { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.04em; }
+.wod-meaning  { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
 .wod-badge {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.75rem;
+  flex-shrink: 0;
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.05em;

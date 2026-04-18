@@ -696,6 +696,20 @@ function getLookup(alphabet) {
   return alphabet === 'hiragana' ? HIRAGANA_LOOKUP : KATAKANA_LOOKUP;
 }
 
+/** Hiragana ↔ Katakana conversions (codepoint offset = 96). */
+function hiraToKata(str) {
+  return [...str].map(c => {
+    const cp = c.codePointAt(0);
+    return (cp >= 0x3041 && cp <= 0x3096) ? String.fromCodePoint(cp + 96) : c;
+  }).join('');
+}
+function kataToHira(str) {
+  return [...str].map(c => {
+    const cp = c.codePointAt(0);
+    return (cp >= 0x30A1 && cp <= 0x30F6) ? String.fromCodePoint(cp - 96) : c;
+  }).join('');
+}
+
 /** Returns a random font from the pool. */
 function randomFont() {
   return FONTS[Math.floor(Math.random() * FONTS.length)];
