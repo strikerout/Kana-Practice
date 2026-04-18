@@ -59,6 +59,9 @@
     <button id="theme-toggle" class="corner-btn" title="Cambiar tema" aria-label="Cambiar tema"></button>
   </div>
 
+  <!-- Dictionary data (global KANA_DICT) — loaded deferred so it doesn't block render -->
+  <script src="js/dictionary.js" defer></script>
+
   <!-- Load order: data → state → sound → game → render → init -->
   <script src="js/data.js"></script>
   <script src="js/sound.js"></script>

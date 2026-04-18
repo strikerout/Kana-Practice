@@ -9,15 +9,11 @@ const Render = (() => {
   let _dictQuery = '';
   let _dictLevel = 'all';
 
-  async function _loadDict() {
-    if (_dictData) return;
-    try {
-      const resp = await fetch('js/dictionary.json');
-      _dictData  = await resp.json();
-    } catch (e) {
-      _dictData = [];
-    }
-    screen(); // re-render with data
+  function _loadDict() {
+    // window.KANA_DICT is assigned by js/dictionary.js (loaded with defer).
+    // Using a script tag instead of fetch() makes it work under file:// protocol.
+    _dictData = window.KANA_DICT || [];
+    screen();
   }
 
   function _filterDict() {
@@ -266,7 +262,11 @@ const Render = (() => {
       State.setScreen('home'); screen();
     });
 
-    if (!_dictData) { _loadDict(); return; }
+    // If the deferred script already ran, data is ready; otherwise load now.
+    if (!_dictData) {
+      if (window.KANA_DICT) { _dictData = window.KANA_DICT; }
+      else { _loadDict(); return; }
+    }
 
     const input = document.getElementById('dict-search');
     if (input) {
