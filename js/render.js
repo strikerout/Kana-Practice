@@ -33,7 +33,7 @@ const Render = (() => {
 
   function _filterDict() {
     const q = _dictQuery.toLowerCase().normalize('NFC').trim();
-    return (_dictData || []).filter(e => {
+    const results = (_dictData || []).filter(e => {
       if (_dictLevel !== 'all' && e.l !== _dictLevel) return false;
       if (!q) return true;
       return (
@@ -43,6 +43,10 @@ const Render = (() => {
         e.s.toLowerCase().includes(q)
       );
     });
+    results.sort((a, b) =>
+      _cleanSpanish(a.s).localeCompare(_cleanSpanish(b.s), 'es', { sensitivity: 'base' })
+    );
+    return results;
   }
 
   function _updateDictResults() {
