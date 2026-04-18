@@ -1040,8 +1040,11 @@ ul, ol { list-style: none; }
   .kana-cell .char  { font-size: 1.9rem; }
   .kana-cell .rom   { font-size: 0.65rem; }
 
-  .home-actions { flex-direction: row; max-width: 380px; }
-  .home-actions .btn { flex: 1; }
+  .home-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 400px;
+  }
 
   .option-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
   .option-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
