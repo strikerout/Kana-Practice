@@ -215,6 +215,57 @@ ul, ol { list-style: none; }
   background: linear-gradient(160deg, #eef2ff 0%, #f7f6f3 50%, #fff1f2 100%);
 }
 
+/* ─── Word of the Day card ──────────────────────────────────── */
+.wod-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  padding: 0.85rem 1rem 0.75rem;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: fadeIn 300ms ease both;
+  border: 1.5px solid var(--border);
+}
+.wod-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.wod-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.wod-emoji { font-size: 2rem; line-height: 1; flex-shrink: 0; }
+.wod-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+.wod-kana   { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.wod-romaji { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.04em; }
+.wod-meaning { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+.wod-badge {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border-radius: var(--r-full);
+  padding: 0.15rem 0.45rem;
+}
+
 .home-header {
   text-align: center;
 }

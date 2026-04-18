@@ -38,8 +38,8 @@ import sys
 import time
 from pathlib import Path
 
-import anthropic
 import requests
+from deep_translator import GoogleTranslator
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -48,21 +48,9 @@ OUTPUT_PATH  = SCRIPT_DIR.parent / "js" / "dictionary.json"
 CACHE_DIR    = SCRIPT_DIR / ".jisho_cache"
 
 LEVELS       = ["n5", "n4", "n3"]
-BATCH_SIZE   = 80          # entries per Claude call
+BATCH_SIZE   = 50          # entries per Google Translate batch
 JISHO_DELAY  = 0.4         # seconds between Jisho API pages
-CLAUDE_DELAY = 0.3         # seconds between Claude batches
-MODEL        = "claude-haiku-4-5-20251001"
-
-# System prompt sent to Claude for every translation batch.
-# Marked with cache_control so it's cached after the first call.
-SYSTEM_PROMPT = (
-    "Eres un traductor especializado en vocabulario japonés. "
-    "Traduce definiciones en inglés al español de manera concisa, "
-    "como si fuera un diccionario (1–5 palabras por definición). "
-    "Responde SOLO con las traducciones numeradas, una por línea, "
-    "sin explicaciones ni texto adicional. "
-    "Usa español natural de América Latina."
-)
+GT_DELAY     = 1.0         # seconds between translation batches
 
 # ─── Hiragana → Katakana ─────────────────────────────────────────────────────
 
@@ -169,67 +157,26 @@ def extract_entry(item: dict, level: str) -> dict | None:
 
 # ─── Claude translation ───────────────────────────────────────────────────────
 
-def translate_batch(
-    entries: list[dict],
-    client: anthropic.Anthropic,
-) -> list[str]:
+def translate_batch(entries: list[dict]) -> list[str]:
     """
-    Translate a batch of English definitions to Spanish using Claude.
-    The system prompt is sent with cache_control so Anthropic caches it
-    after the first request — subsequent batches pay only ~0.1× the read cost.
+    Translate a batch of English definitions to Spanish using Google Translate
+    (via deep-translator — free, no API key required).
     """
-    numbered = "\n".join(
-        f"{i + 1}. {e['english']}" for i, e in enumerate(entries)
-    )
-
-    msg = client.messages.create(
-        model=MODEL,
-        max_tokens=1024,
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                # Cache the system prompt — it's identical for every batch call.
-                # After the first batch, all subsequent calls read from cache
-                # at ~10 % of the normal input token cost.
-                "cache_control": {"type": "ephemeral"},
-            }
-        ],
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"Traduce al español estas {len(entries)} definiciones:\n\n"
-                    f"{numbered}"
-                ),
-            }
-        ],
-    )
-
-    raw = msg.content[0].text.strip()
-    translations: list[str] = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        # Strip leading "1. " numbering
-        parts = line.split(". ", 1)
-        translations.append(parts[1].strip() if len(parts) == 2 else line)
-
-    return translations
+    translator = GoogleTranslator(source="en", target="es")
+    results: list[str] = []
+    for e in entries:
+        try:
+            t = translator.translate(e["english"])
+            results.append(t or e["english"])
+        except Exception:
+            results.append(e["english"])
+        time.sleep(0.05)
+    return results
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        sys.exit(
-            "❌  ANTHROPIC_API_KEY environment variable not set.\n"
-            "   export ANTHROPIC_API_KEY='sk-ant-...'"
-        )
-
-    client      = anthropic.Anthropic(api_key=api_key)
-    to_romaji   = build_romaji_converter()
+    to_romaji = build_romaji_converter()
 
     print("📚  Generating dictionary.json for かな練習\n")
 
@@ -264,57 +211,44 @@ def main() -> None:
 
     # ── 4. Translate to Spanish via Claude ───────────────────────────────────
     print(f"\nStep 4 — Translating to Spanish ({len(entries)} entries, "
-          f"batches of {BATCH_SIZE}) …")
-    print("  (System prompt is cached after the first batch — "
-          "subsequent batches are cheap)\n")
+          f"batches of {BATCH_SIZE}) via Google Translate …\n")
 
-    translated = 0
-    errors     = 0
+    translated    = 0
+    errors        = 0
+    total_batches = (len(entries) + BATCH_SIZE - 1) // BATCH_SIZE
 
     for start in range(0, len(entries), BATCH_SIZE):
-        batch = entries[start : start + BATCH_SIZE]
+        batch     = entries[start : start + BATCH_SIZE]
         batch_num = start // BATCH_SIZE + 1
-        total_batches = (len(entries) + BATCH_SIZE - 1) // BATCH_SIZE
 
         try:
-            translations = translate_batch(batch, client)
+            translations = translate_batch(batch)
             for j, t in enumerate(translations):
                 if j < len(batch):
                     batch[j]["s"] = t
-            # Fill any entries that didn't get a translation
             for e in batch:
-                if "s" not in e:
-                    e["s"] = e["english"]
+                e.setdefault("s", e["english"])
             translated += len(batch)
             print(f"  [{batch_num:3d}/{total_batches}] ✓  {translated}/{len(entries)}")
-            time.sleep(CLAUDE_DELAY)
+            time.sleep(GT_DELAY)
 
-        except anthropic.RateLimitError:
-            print(f"  [{batch_num:3d}/{total_batches}] ⚠  Rate limited — waiting 60 s …")
-            time.sleep(60)
-            # Retry once
+        except Exception as exc:
+            print(f"  [{batch_num:3d}/{total_batches}] ⚠  {exc} — retrying in 10 s …")
+            time.sleep(10)
             try:
-                translations = translate_batch(batch, client)
+                translations = translate_batch(batch)
                 for j, t in enumerate(translations):
                     if j < len(batch):
                         batch[j]["s"] = t
                 for e in batch:
-                    if "s" not in e:
-                        e["s"] = e["english"]
+                    e.setdefault("s", e["english"])
                 translated += len(batch)
                 print(f"  [{batch_num:3d}/{total_batches}] ✓  {translated}/{len(entries)} (retry ok)")
             except Exception as exc2:
-                print(f"  [{batch_num:3d}/{total_batches}] ❌  Retry failed: {exc2}")
+                print(f"  [{batch_num:3d}/{total_batches}] ❌  {exc2}")
                 for e in batch:
                     e.setdefault("s", e["english"])
                 errors += len(batch)
-
-        except Exception as exc:
-            print(f"  [{batch_num:3d}/{total_batches}] ❌  {exc}")
-            for e in batch:
-                e.setdefault("s", e["english"])
-            errors += len(batch)
-            time.sleep(2)
 
     # ── 5. Build final output ────────────────────────────────────────────────
     print("\nStep 5 — Writing output …")

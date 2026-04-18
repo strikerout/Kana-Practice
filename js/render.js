@@ -53,16 +53,49 @@ const Render = (() => {
   // ══════════════════════════════════════════════════════════════
   // HOME
   // ══════════════════════════════════════════════════════════════
+  /** Pick a word deterministically from the combined pool based on today's date. */
+  function _wordOfDay() {
+    const pool = [...WORDS_HIRAGANA, ...WORDS_KATAKANA];
+    const daysSinceEpoch = Math.floor(Date.now() / 86_400_000);
+    return pool[daysSinceEpoch % pool.length];
+  }
+
   function _homeHTML() {
     const { alphabet } = State.config;
     const hiA = alphabet === 'hiragana' ? 'active' : '';
     const kaA = alphabet === 'katakana' ? 'active' : '';
+
+    const w    = _wordOfDay();
+    const isHira = WORDS_HIRAGANA.includes(w);
+    const badge  = isHira ? 'Hiragana' : 'Katakana';
+
+    // Format today's date nicely
+    const today = new Date().toLocaleDateString('es-AR', {
+      weekday: 'long', day: 'numeric', month: 'long',
+    });
+    const todayLabel = today.charAt(0).toUpperCase() + today.slice(1);
+
     return `
       <div class="screen screen-home">
         <header class="home-header">
           <h1 class="app-title">かな練習</h1>
           <p class="app-subtitle">Kana Practice</p>
         </header>
+
+        <!-- Word of the Day -->
+        <div class="wod-card">
+          <p class="wod-eyebrow">📅 Palabra del día &nbsp;·&nbsp; ${todayLabel}</p>
+          <div class="wod-body">
+            <span class="wod-emoji">${w.emoji}</span>
+            <div class="wod-text">
+              <span class="wod-kana" style="font-family:'Noto Sans JP',sans-serif">${w.word ?? w.h ?? ''}</span>
+              <span class="wod-romaji">${w.romaji ?? w.r ?? ''}</span>
+              <span class="wod-meaning">${w.meaning ?? w.s ?? ''}</span>
+            </div>
+          </div>
+          <span class="wod-badge">${badge}</span>
+        </div>
+
         <div class="alphabet-selector">
           <button class="btn-alphabet ${hiA}" data-alphabet="hiragana">
             <span class="kana-char" style="font-size:2.5rem;font-family:'Noto Sans JP',sans-serif">あ</span>
