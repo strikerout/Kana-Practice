@@ -4,14 +4,73 @@
 
 const Render = (() => {
 
+  // ─── Dictionary module-level state ───────────────────────────
+  let _dictData  = null;   // loaded once from dictionary.json
+  let _dictQuery = '';
+  let _dictLevel = 'all';
+
+  async function _loadDict() {
+    if (_dictData) return;
+    try {
+      const resp = await fetch('js/dictionary.json');
+      _dictData  = await resp.json();
+    } catch (e) {
+      _dictData = [];
+    }
+    screen(); // re-render with data
+  }
+
+  function _filterDict() {
+    const q = _dictQuery.toLowerCase().normalize('NFC').trim();
+    return (_dictData || []).filter(e => {
+      if (_dictLevel !== 'all' && e.l !== _dictLevel) return false;
+      if (!q) return true;
+      return (
+        e.h.includes(q) ||
+        e.k.includes(q) ||
+        e.r.includes(q) ||
+        e.s.toLowerCase().includes(q)
+      );
+    });
+  }
+
+  function _updateDictResults() {
+    const MAX = 200;
+    const filtered = _filterDict();
+    const shown    = filtered.slice(0, MAX);
+    const total    = filtered.length;
+
+    const tbody  = document.getElementById('dict-tbody');
+    const countEl = document.getElementById('dict-count');
+
+    if (tbody) {
+      tbody.innerHTML = shown.map(e => `
+        <tr>
+          <td class="dict-s">${e.s}</td>
+          <td class="dict-kana">${e.h}</td>
+          <td class="dict-kana dict-muted">${e.k}</td>
+          <td class="dict-rom">${e.r}</td>
+          <td><span class="dict-lvl-badge dict-${e.l}">${e.l}</span></td>
+        </tr>`).join('');
+    }
+    if (countEl) {
+      countEl.textContent = total === 0
+        ? 'Sin resultados'
+        : total > MAX
+          ? `${total.toLocaleString()} palabras · mostrando ${MAX}`
+          : `${total.toLocaleString()} palabra${total !== 1 ? 's' : ''}`;
+    }
+  }
+
   // ─── Router ──────────────────────────────────────────────────
   function screen() {
     const app = document.getElementById('app');
     switch (State.screen) {
-      case 'home':   app.innerHTML = _homeHTML();   _homeEvents();   break;
-      case 'repaso': app.innerHTML = _repasoHTML(); _repasoEvents(); break;
-      case 'table':  app.innerHTML = _tableHTML();  _tableEvents();  break;
-      case 'config': app.innerHTML = _configHTML(); _configEvents(); break;
+      case 'home':        app.innerHTML = _homeHTML();        _homeEvents();        break;
+      case 'repaso':      app.innerHTML = _repasoHTML();      _repasoEvents();      break;
+      case 'table':       app.innerHTML = _tableHTML();       _tableEvents();       break;
+      case 'diccionario': app.innerHTML = _dictHTML();        _dictEvents();        break;
+      case 'config':      app.innerHTML = _configHTML();       _configEvents();      break;
       case 'game':   app.innerHTML = _gameHTML();   _gameEvents();   break;
       case 'result': app.innerHTML = _resultHTML(); _resultEvents(); break;
     }
@@ -109,6 +168,7 @@ const Render = (() => {
         <div class="home-actions">
           <button class="btn btn-secondary" id="btn-table">📋 Ver Tabla</button>
           <button class="btn btn-secondary" id="btn-repaso">📝 Repaso</button>
+          <button class="btn btn-secondary" id="btn-dict">📖 Diccionario</button>
           <button class="btn btn-primary"   id="btn-config">🎮 Practicar</button>
         </div>
       </div>`;
@@ -124,8 +184,106 @@ const Render = (() => {
     document.getElementById('btn-repaso').addEventListener('click', () => {
       State.setScreen('repaso'); screen();
     });
+    document.getElementById('btn-dict').addEventListener('click', () => {
+      State.setScreen('diccionario'); screen();
+    });
     document.getElementById('btn-config').addEventListener('click', () => {
       State.setScreen('config'); screen();
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // DICCIONARIO
+  // ══════════════════════════════════════════════════════════════
+  function _dictHTML() {
+    const loading = !_dictData;
+    const MAX     = 200;
+    const filtered = _filterDict();
+    const shown    = filtered.slice(0, MAX);
+    const total    = filtered.length;
+
+    const countText = loading
+      ? 'Cargando…'
+      : total === 0
+        ? 'Sin resultados'
+        : total > MAX
+          ? `${total.toLocaleString()} palabras · mostrando ${MAX}`
+          : `${total.toLocaleString()} palabra${total !== 1 ? 's' : ''}`;
+
+    const lvls = ['all','N5','N4','N3'];
+    const lvlLabels = { all: 'Todos', N5: 'N5', N4: 'N4', N3: 'N3' };
+    const lvlBtns = lvls.map(l =>
+      `<button class="dict-filter-btn ${_dictLevel === l ? 'active' : ''}" data-lvl="${l}">${lvlLabels[l]}</button>`
+    ).join('');
+
+    const rowsHTML = shown.map(e => `
+      <tr>
+        <td class="dict-s">${e.s}</td>
+        <td class="dict-kana">${e.h}</td>
+        <td class="dict-kana dict-muted">${e.k}</td>
+        <td class="dict-rom">${e.r}</td>
+        <td><span class="dict-lvl-badge dict-${e.l}">${e.l}</span></td>
+      </tr>`).join('');
+
+    return `
+      <div class="screen screen-dict">
+        <header class="screen-header">
+          <button class="btn-back" id="btn-back">← Volver</button>
+          <h2>📖 Diccionario</h2>
+        </header>
+
+        <div class="dict-controls">
+          <input id="dict-search" class="dict-search" type="search"
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            placeholder="Buscar en español, kana o romaji…"
+            value="${_dictQuery}">
+          <div class="dict-level-row">${lvlBtns}</div>
+        </div>
+
+        ${loading
+          ? `<div class="dict-loading">⏳ Cargando diccionario…</div>`
+          : `<p id="dict-count" class="dict-count">${countText}</p>
+             <div class="dict-table-wrap">
+               <table class="dict-table">
+                 <thead>
+                   <tr>
+                     <th>Español</th>
+                     <th>Hiragana</th>
+                     <th>Katakana</th>
+                     <th>Romaji</th>
+                     <th>Niv.</th>
+                   </tr>
+                 </thead>
+                 <tbody id="dict-tbody">${rowsHTML}</tbody>
+               </table>
+             </div>`
+        }
+      </div>`;
+  }
+
+  function _dictEvents() {
+    document.getElementById('btn-back').addEventListener('click', () => {
+      State.setScreen('home'); screen();
+    });
+
+    if (!_dictData) { _loadDict(); return; }
+
+    const input = document.getElementById('dict-search');
+    if (input) {
+      input.focus();
+      input.addEventListener('input', () => {
+        _dictQuery = input.value;
+        _updateDictResults();
+      });
+    }
+
+    document.querySelectorAll('.dict-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _dictLevel = btn.dataset.lvl;
+        btn.closest('.dict-level-row').querySelectorAll('.dict-filter-btn')
+          .forEach(b => b.classList.toggle('active', b === btn));
+        _updateDictResults();
+      });
     });
   }
 
