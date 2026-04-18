@@ -5,9 +5,11 @@
 const Render = (() => {
 
   // ─── Dictionary module-level state ───────────────────────────
-  let _dictData  = null;   // loaded once from dictionary.json
-  let _dictQuery = '';
-  let _dictLevel = 'all';
+  let _dictData     = null;
+  let _dictQuery    = '';
+  let _dictLevel    = 'all';
+  let _dictShown    = 200;   // rows currently rendered
+  let _dictObserver = null;  // IntersectionObserver for infinite scroll
 
   function _loadDict() {
     // window.KANA_DICT is assigned by js/dictionary.js (loaded with defer).
@@ -49,32 +51,74 @@ const Render = (() => {
     return results;
   }
 
-  function _updateDictResults() {
-    const MAX = 200;
-    const filtered = _filterDict();
-    const shown    = filtered.slice(0, MAX);
-    const total    = filtered.length;
+  function _dictRowHTML(e) {
+    return `<tr>
+      <td class="dict-s">${_cleanSpanish(e.s)}</td>
+      <td class="dict-kana">${e.h}</td>
+      <td class="dict-kana dict-muted">${e.k}</td>
+      <td class="dict-rom">${e.r}</td>
+      <td><span class="dict-lvl-badge dict-${e.l}">${e.l}</span></td>
+    </tr>`;
+  }
 
-    const tbody  = document.getElementById('dict-tbody');
+  function _dictCountText(shown, total) {
+    if (total === 0) return 'Sin resultados';
+    if (shown >= total) return `${total.toLocaleString()} palabra${total !== 1 ? 's' : ''}`;
+    return `${total.toLocaleString()} palabras · mostrando ${shown}`;
+  }
+
+  /** Attach IntersectionObserver to the sentinel row for infinite scroll. */
+  function _setupInfiniteScroll(filtered) {
+    if (_dictObserver) { _dictObserver.disconnect(); _dictObserver = null; }
+    const sentinel = document.getElementById('dict-sentinel');
+    if (!sentinel || _dictShown >= filtered.length) return;
+
+    _dictObserver = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      const next = filtered.slice(_dictShown, _dictShown + 100);
+      if (!next.length) return;
+      _dictShown += next.length;
+
+      const tbody = document.getElementById('dict-tbody');
+      if (tbody && sentinel) {
+        next.forEach(e => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = _dictRowHTML(e).replace(/^<tr>|<\/tr>$/g, '');
+          tbody.insertBefore(tr, sentinel);
+        });
+      }
+      const countEl = document.getElementById('dict-count');
+      if (countEl) countEl.textContent = _dictCountText(_dictShown, filtered.length);
+
+      if (_dictShown >= filtered.length) {
+        _dictObserver?.disconnect();
+        sentinel?.remove();
+      }
+    }, { rootMargin: '150px 0px' });
+
+    _dictObserver.observe(sentinel);
+  }
+
+  function _updateDictResults() {
+    if (_dictObserver) { _dictObserver.disconnect(); _dictObserver = null; }
+    _dictShown = 200;
+
+    const filtered = _filterDict();
+    const total    = filtered.length;
+    const shown    = filtered.slice(0, _dictShown);
+
+    const tbody   = document.getElementById('dict-tbody');
     const countEl = document.getElementById('dict-count');
 
     if (tbody) {
-      tbody.innerHTML = shown.map(e => `
-        <tr>
-          <td class="dict-s">${_cleanSpanish(e.s)}</td>
-          <td class="dict-kana">${e.h}</td>
-          <td class="dict-kana dict-muted">${e.k}</td>
-          <td class="dict-rom">${e.r}</td>
-          <td><span class="dict-lvl-badge dict-${e.l}">${e.l}</span></td>
-        </tr>`).join('');
+      tbody.innerHTML = shown.map(_dictRowHTML).join('') +
+        (total > _dictShown
+          ? `<tr id="dict-sentinel"><td colspan="5" style="padding:0;height:1px"></td></tr>`
+          : '');
     }
-    if (countEl) {
-      countEl.textContent = total === 0
-        ? 'Sin resultados'
-        : total > MAX
-          ? `${total.toLocaleString()} palabras · mostrando ${MAX}`
-          : `${total.toLocaleString()} palabra${total !== 1 ? 's' : ''}`;
-    }
+    if (countEl) countEl.textContent = _dictCountText(_dictShown, total);
+
+    _setupInfiniteScroll(filtered);
   }
 
   // ─── Router ──────────────────────────────────────────────────
@@ -237,14 +281,7 @@ const Render = (() => {
       `<button class="dict-filter-btn ${_dictLevel === l ? 'active' : ''}" data-lvl="${l}">${lvlLabels[l]}</button>`
     ).join('');
 
-    const rowsHTML = shown.map(e => `
-      <tr>
-        <td class="dict-s">${_cleanSpanish(e.s)}</td>
-        <td class="dict-kana">${e.h}</td>
-        <td class="dict-kana dict-muted">${e.k}</td>
-        <td class="dict-rom">${e.r}</td>
-        <td><span class="dict-lvl-badge dict-${e.l}">${e.l}</span></td>
-      </tr>`).join('');
+    const rowsHTML = shown.map(_dictRowHTML).join('');
 
     return `
       <div class="screen screen-dict">
@@ -275,7 +312,7 @@ const Render = (() => {
                      <th>Niv.</th>
                    </tr>
                  </thead>
-                 <tbody id="dict-tbody">${rowsHTML}</tbody>
+                 <tbody id="dict-tbody">${rowsHTML}${total > _dictShown ? `<tr id="dict-sentinel"><td colspan="5" style="padding:0;height:1px"></td></tr>` : ''}</tbody>
                </table>
              </div>`
         }
@@ -284,14 +321,17 @@ const Render = (() => {
 
   function _dictEvents() {
     document.getElementById('btn-back').addEventListener('click', () => {
+      if (_dictObserver) { _dictObserver.disconnect(); _dictObserver = null; }
       State.setScreen('home'); screen();
     });
 
-    // If the deferred script already ran, data is ready; otherwise load now.
     if (!_dictData) {
       if (window.KANA_DICT) { _dictData = window.KANA_DICT; }
       else { _loadDict(); return; }
     }
+
+    // Boot infinite scroll for the initial render
+    _setupInfiniteScroll(_filterDict());
 
     const input = document.getElementById('dict-search');
     if (input) {
