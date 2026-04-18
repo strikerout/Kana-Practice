@@ -16,6 +16,17 @@ const Render = (() => {
     screen();
   }
 
+  /** Clean up Google Translate artifacts for display.
+   *  - Takes only the first semicolon-separated definition
+   *  - Strips parenthetical explanations
+   *  - Trims whitespace
+   */
+  function _cleanSpanish(s) {
+    let clean = s.split(';')[0].trim();
+    clean = clean.replace(/\s*\([^)]*\)/g, '').trim();
+    return clean || s.split(';')[0].trim();
+  }
+
   function _filterDict() {
     const q = _dictQuery.toLowerCase().normalize('NFC').trim();
     return (_dictData || []).filter(e => {
@@ -42,7 +53,7 @@ const Render = (() => {
     if (tbody) {
       tbody.innerHTML = shown.map(e => `
         <tr>
-          <td class="dict-s">${e.s}</td>
+          <td class="dict-s">${_cleanSpanish(e.s)}</td>
           <td class="dict-kana">${e.h}</td>
           <td class="dict-kana dict-muted">${e.k}</td>
           <td class="dict-rom">${e.r}</td>
@@ -216,7 +227,7 @@ const Render = (() => {
 
     const rowsHTML = shown.map(e => `
       <tr>
-        <td class="dict-s">${e.s}</td>
+        <td class="dict-s">${_cleanSpanish(e.s)}</td>
         <td class="dict-kana">${e.h}</td>
         <td class="dict-kana dict-muted">${e.k}</td>
         <td class="dict-rom">${e.r}</td>
