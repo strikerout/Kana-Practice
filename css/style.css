@@ -1630,6 +1630,27 @@ ul, ol { list-style: none; }
 .tf-err small { font-size: 0.9em; color: var(--correct); font-weight: 700; display: block; }
 .tf-result-bar { display: flex; gap: var(--gap); justify-content: center; font-size: 1.1rem; font-weight: 700; padding: 0.5rem 0; }
 
+/* Dictionary infinite scroll loading indicator */
+.dict-loading-cell {
+  text-align: center;
+  padding: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.dict-mini-spinner {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* ─── Corner controls (sound + theme toggles) ───────────────── */
 .corner-controls {
   position: fixed;

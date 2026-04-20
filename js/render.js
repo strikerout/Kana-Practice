@@ -73,27 +73,45 @@ const Render = (() => {
     const sentinel = document.getElementById('dict-sentinel');
     if (!sentinel || _dictShown >= filtered.length) return;
 
+    let _loading = false;
+
     _dictObserver = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
+      if (!entry.isIntersecting || _loading) return;
       const next = filtered.slice(_dictShown, _dictShown + 100);
       if (!next.length) return;
-      _dictShown += next.length;
 
+      _loading = true;
+
+      // Show loading indicator
       const tbody = document.getElementById('dict-tbody');
-      if (tbody && sentinel) {
-        next.forEach(e => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = _dictRowHTML(e).replace(/^<tr>|<\/tr>$/g, '');
-          tbody.insertBefore(tr, sentinel);
-        });
-      }
-      const countEl = document.getElementById('dict-count');
-      if (countEl) countEl.textContent = _dictCountText(_dictShown, filtered.length);
+      const loadingRow = document.createElement('tr');
+      loadingRow.id = 'dict-loading-row';
+      loadingRow.innerHTML = `<td colspan="5" class="dict-loading-cell">
+        <span class="dict-mini-spinner"></span>Cargando ${next.length} más…
+      </td>`;
+      if (tbody && sentinel) tbody.insertBefore(loadingRow, sentinel);
 
-      if (_dictShown >= filtered.length) {
-        _dictObserver?.disconnect();
-        sentinel?.remove();
-      }
+      // Small delay so the indicator is visible
+      setTimeout(() => {
+        _dictShown += next.length;
+        loadingRow.remove();
+
+        if (tbody && sentinel) {
+          next.forEach(e => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = _dictRowHTML(e).replace(/^<tr>|<\/tr>$/g, '');
+            tbody.insertBefore(tr, sentinel);
+          });
+        }
+        const countEl = document.getElementById('dict-count');
+        if (countEl) countEl.textContent = _dictCountText(_dictShown, filtered.length);
+
+        if (_dictShown >= filtered.length) {
+          _dictObserver?.disconnect();
+          sentinel?.remove();
+        }
+        _loading = false;
+      }, 350);
     }, { rootMargin: '150px 0px' });
 
     _dictObserver.observe(sentinel);
